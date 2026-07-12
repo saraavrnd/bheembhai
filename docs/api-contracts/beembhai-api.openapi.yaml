@@ -1,0 +1,897 @@
+openapi: 3.1.0
+info:
+  title: BeemBhai API
+  version: 1.0.0
+  description: |
+    Backend contract for governed workflow orchestration, approvals, integrations, and run audit.
+servers:
+  - url: /api/v1
+tags:
+  - name: Auth
+  - name: Projects
+  - name: Integrations
+  - name: Config
+  - name: Runs
+  - name: Approvals
+  - name: Notifications
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a local user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Session established
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: End the current session
+      responses:
+        "204":
+          description: Session cleared
+  /auth/email/verify:
+    post:
+      tags: [Auth]
+      summary: Verify an email address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailVerifyRequest"
+      responses:
+        "204":
+          description: Verified
+  /auth/password-reset/request:
+    post:
+      tags: [Auth]
+      summary: Request a password reset link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetRequest"
+      responses:
+        "204":
+          description: Reset email queued
+  /auth/password-reset/confirm:
+    post:
+      tags: [Auth]
+      summary: Confirm a password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetConfirmRequest"
+      responses:
+        "204":
+          description: Password updated
+  /me:
+    get:
+      tags: [Auth]
+      summary: Return the signed-in user and project memberships
+      responses:
+        "200":
+          description: Signed-in user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects accessible to the signed-in user
+      responses:
+        "200":
+          description: Project list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Project"
+    post:
+      tags: [Projects]
+      summary: Create a project with GitHub and Jira linkage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectCreateRequest"
+      responses:
+        "201":
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /projects/{projectId}:
+    get:
+      tags: [Projects]
+      summary: Read a single project
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+    patch:
+      tags: [Projects]
+      summary: Update project metadata
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectUpdateRequest"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /projects/{projectId}/members:
+    get:
+      tags: [Projects]
+      summary: List project memberships
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      responses:
+        "200":
+          description: Member list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Membership"
+    post:
+      tags: [Projects]
+      summary: Add or update a project membership and role
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MembershipUpsertRequest"
+      responses:
+        "200":
+          description: Membership saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Membership"
+  /projects/{projectId}/integrations:
+    get:
+      tags: [Integrations]
+      summary: List configured integration bindings
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      responses:
+        "200":
+          description: Integration bindings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProjectIntegrationBinding"
+    put:
+      tags: [Integrations]
+      summary: Set the active provider for an integration category
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectIntegrationBindingUpsertRequest"
+      responses:
+        "200":
+          description: Integration binding saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectIntegrationBinding"
+  /projects/{projectId}/workflow-policy-bindings:
+    get:
+      tags: [Config]
+      summary: List allowed workflow-policy pairings
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      responses:
+        "200":
+          description: Workflow-policy pairings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WorkflowPolicyBinding"
+    post:
+      tags: [Config]
+      summary: Add an approved workflow-policy pairing to a project
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowPolicyBindingCreateRequest"
+      responses:
+        "201":
+          description: Binding created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowPolicyBinding"
+  /projects/{projectId}/notification-configurations:
+    get:
+      tags: [Notifications]
+      summary: Read the active notification configuration and subscriptions
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      responses:
+        "200":
+          description: Notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationConfiguration"
+    put:
+      tags: [Notifications]
+      summary: Replace the active notification configuration
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationConfigurationUpsertRequest"
+      responses:
+        "200":
+          description: Notification configuration saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationConfiguration"
+  /projects/{projectId}/runs:
+    get:
+      tags: [Runs]
+      summary: List runs for a project
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      responses:
+        "200":
+          description: Run list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RunSummary"
+    post:
+      tags: [Runs]
+      summary: Create a run from a source issue key and story input
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunCreateRequest"
+      responses:
+        "201":
+          description: Run created and queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunSummary"
+  /runs:
+    get:
+      tags: [Runs]
+      summary: List runs across accessible projects
+      responses:
+        "200":
+          description: Run list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RunSummary"
+  /runs/{runId}:
+    get:
+      tags: [Runs]
+      summary: Read a run in detail
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        "200":
+          description: Run detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunDetail"
+  /runs/{runId}/steps:
+    get:
+      tags: [Runs]
+      summary: List the steps in a run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        "200":
+          description: Step list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StepSummary"
+  /runs/{runId}/events:
+    get:
+      tags: [Runs]
+      summary: Read the run transition history
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        "200":
+          description: Transition events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StateTransition"
+  /runs/{runId}/steps/{stepId}/decision:
+    post:
+      tags: [Approvals]
+      summary: Approve or request changes on a gated step
+      description: |
+        `approve` resumes the parked run. `request_changes` records the decision and routes the
+        workflow back to the immediately previous step, creating a new attempt for that step.
+      parameters:
+        - $ref: "#/components/parameters/runId"
+        - $ref: "#/components/parameters/stepId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionRequest"
+      responses:
+        "200":
+          description: Decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunDetail"
+  /runs/{runId}/approvals:
+    get:
+      tags: [Approvals]
+      summary: List approval records for a run
+      parameters:
+        - $ref: "#/components/parameters/runId"
+      responses:
+        "200":
+          description: Approval list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Approval"
+
+components:
+  parameters:
+    projectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    runId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    stepId:
+      name: stepId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: bb_session
+  schemas:
+    User:
+      type: object
+      required: [id, email, platformRole, emailVerifiedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        platformRole:
+          type: string
+          enum: [PLATFORM_ADMIN, STANDARD]
+        emailVerifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+    SessionResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+    MeResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        memberships:
+          type: array
+          items:
+            $ref: "#/components/schemas/Membership"
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 12
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    EmailVerifyRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    PasswordResetRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordResetConfirmRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+          minLength: 12
+    Project:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        githubRepositoryRef:
+          type: string
+        jiraProjectKey:
+          type: string
+          nullable: true
+        activeWorkflowVersionId:
+          type: string
+          format: uuid
+          nullable: true
+        activePolicyVersionId:
+          type: string
+          format: uuid
+          nullable: true
+    ProjectCreateRequest:
+      type: object
+      required: [name, githubRepositoryRef]
+      properties:
+        name:
+          type: string
+        githubRepositoryRef:
+          type: string
+        jiraProjectKey:
+          type: string
+          nullable: true
+    ProjectUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        githubRepositoryRef:
+          type: string
+        jiraProjectKey:
+          type: string
+          nullable: true
+    Membership:
+      type: object
+      required: [id, projectId, userId, role]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [PROJECT_MANAGER, DEVELOPER, DEVOPS, REVIEWER]
+    MembershipUpsertRequest:
+      type: object
+      required: [userId, role]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [PROJECT_MANAGER, DEVELOPER, DEVOPS, REVIEWER]
+    ProjectIntegrationBinding:
+      type: object
+      required: [id, integrationCategoryKey, integrationProviderKey]
+      properties:
+        id:
+          type: string
+          format: uuid
+        integrationCategoryKey:
+          type: string
+        integrationProviderKey:
+          type: string
+        isActive:
+          type: boolean
+        config:
+          type: object
+          additionalProperties: true
+    ProjectIntegrationBindingUpsertRequest:
+      type: object
+      required: [integrationCategoryKey, integrationProviderKey]
+      properties:
+        integrationCategoryKey:
+          type: string
+        integrationProviderKey:
+          type: string
+        config:
+          type: object
+          additionalProperties: true
+        credentialSecretValue:
+          type: string
+          nullable: true
+          description: Raw secret material stored in secure storage by the backend.
+    WorkflowPolicyBinding:
+      type: object
+      required: [id, workflowVersionId, policyVersionId, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workflowVersionId:
+          type: string
+          format: uuid
+        policyVersionId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+    WorkflowPolicyBindingCreateRequest:
+      type: object
+      required: [workflowVersionId, policyVersionId]
+      properties:
+        workflowVersionId:
+          type: string
+          format: uuid
+        policyVersionId:
+          type: string
+          format: uuid
+    NotificationConfiguration:
+      type: object
+      required: [id, projectId, version, subscriptions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        subscriptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationSubscription"
+    NotificationConfigurationUpsertRequest:
+      type: object
+      required: [subscriptions]
+      properties:
+        subscriptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationSubscriptionInput"
+    NotificationSubscriptionInput:
+      type: object
+      required: [eventType, channel, targetType, targetValue]
+      properties:
+        eventType:
+          type: string
+          description: Run or step event selector.
+        channel:
+          type: string
+          enum: [email]
+        targetType:
+          type: string
+          enum: [email, role, user]
+        targetValue:
+          type: string
+    NotificationSubscription:
+      type: object
+      required: [id, eventType, channel, targetType, targetValue]
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        channel:
+          type: string
+          enum: [email]
+        targetType:
+          type: string
+          enum: [email, role, user]
+        targetValue:
+          type: string
+        isActive:
+          type: boolean
+    RunCreateRequest:
+      type: object
+      required: [workflowVersionId, policyVersionId, sourceIssueKey, startingStoryInput]
+      properties:
+        workflowVersionId:
+          type: string
+          format: uuid
+        policyVersionId:
+          type: string
+          format: uuid
+        sourceIssueKey:
+          type: string
+        startingStoryInput:
+          type: string
+        notificationRecipients:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationRecipientInput"
+    NotificationRecipientInput:
+      type: object
+      required: [type, value]
+      properties:
+        type:
+          type: string
+          enum: [email, role, user]
+        value:
+          type: string
+    RunSummary:
+      type: object
+      required: [id, projectId, sourceIssueKey, status, totalCostUsd]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        sourceIssueKey:
+          type: string
+        status:
+          type: string
+        currentStepKey:
+          type: string
+          nullable: true
+        totalCostUsd:
+          type: number
+    RunDetail:
+      allOf:
+        - $ref: "#/components/schemas/RunSummary"
+        - type: object
+          properties:
+            branchName:
+              type: string
+            startingStoryInput:
+              type: string
+            workflowVersionId:
+              type: string
+              format: uuid
+            policyVersionId:
+              type: string
+              format: uuid
+            notificationConfigurationId:
+              type: string
+              format: uuid
+              nullable: true
+            steps:
+              type: array
+              items:
+                $ref: "#/components/schemas/StepSummary"
+            transitions:
+              type: array
+              items:
+                $ref: "#/components/schemas/StateTransition"
+            approvals:
+              type: array
+              items:
+                $ref: "#/components/schemas/Approval"
+    StepSummary:
+      type: object
+      required: [id, stepKey, skillKey, executionState]
+      properties:
+        id:
+          type: string
+          format: uuid
+        stepKey:
+          type: string
+        skillKey:
+          type: string
+        executionState:
+          type: string
+        latestResultStatus:
+          type: string
+          nullable: true
+        costUsd:
+          type: number
+    StateTransition:
+      type: object
+      required: [id, runId, fromState, toState, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        runId:
+          type: string
+          format: uuid
+        stepId:
+          type: string
+          format: uuid
+          nullable: true
+        attemptId:
+          type: string
+          format: uuid
+          nullable: true
+        fromState:
+          type: string
+        toState:
+          type: string
+        resultStatus:
+          type: string
+          nullable: true
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Approval:
+      type: object
+      required: [id, runId, stepId, approverUserId, decision, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        runId:
+          type: string
+          format: uuid
+        stepId:
+          type: string
+          format: uuid
+        approverUserId:
+          type: string
+          format: uuid
+        decision:
+          type: string
+          enum: [approve, request_changes]
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ApprovalDecisionRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [approve, request_changes]
+        comment:
+          type: string
+          nullable: true

@@ -1,0 +1,43 @@
+{
+  "epic_key": "BEEM-3",
+  "project_key": "BEEM",
+  "stories": [
+    {
+      "story_key": "BEEM-16",
+      "summary": "Bootstrap initial platform admin",
+      "requirement_ids": [
+        "FR-005"
+      ]
+    },
+    {
+      "story_key": "BEEM-12",
+      "summary": "Create and list accessible projects",
+      "requirement_ids": [
+        "FR-001",
+        "FR-002"
+      ]
+    },
+    {
+      "story_key": "BEEM-13",
+      "summary": "Pin workflow-policy pairings",
+      "requirement_ids": [
+        "FR-003",
+        "FR-004"
+      ]
+    },
+    {
+      "story_key": "BEEM-14",
+      "summary": "Sign in, verify email, and reset password",
+      "requirement_ids": [
+        "FR-005"
+      ]
+    },
+    {
+      "story_key": "BEEM-15",
+      "summary": "Assign project roles for approvals",
+      "requirement_ids": [
+        "FR-006"
+      ]
+    }
+  ]
+}

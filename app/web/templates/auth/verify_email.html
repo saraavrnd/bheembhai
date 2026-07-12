@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="auth-card">
+        <p class="eyebrow mb-2">Account activation</p>
+        <h1 class="display-4 fw-semibold mb-3">{{ heading }}</h1>
+        <p class="lead mb-4">{{ message }}</p>
+
+        {% if verified_email %}
+          <p class="auth-meta mb-4">
+            Verified account: <strong>{{ verified_email }}</strong>
+          </p>
+        {% endif %}
+
+        <form id="verify-form" method="post" action="{{ post_url }}" class="d-none">
+          <input type="hidden" name="token" id="verify-token" value="{{ token | default('') }}">
+        </form>
+
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+          <a class="btn btn-primary" href="{{ home_url }}">Go home</a>
+          <span class="status-pill status-pill--{{ state }}">{{ state }}</span>
+        </div>
+
+        <p class="auth-meta mt-4" id="verify-hint">
+          If this page was opened from your email link, it will verify automatically.
+        </p>
+
+        <noscript>
+          <p class="auth-meta mt-3">
+            JavaScript is required to complete email verification from the link.
+          </p>
+        </noscript>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const token = fragment.get("token");
+    const tokenInput = document.getElementById("verify-token");
+    const form = document.getElementById("verify-form");
+    const hint = document.getElementById("verify-hint");
+    if (!token || !tokenInput || !form) {
+      if (hint) {
+        hint.textContent = "Open the link from your email so the token can be verified.";
+      }
+      return;
+    }
+    tokenInput.value = token;
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    form.submit();
+  })();
+</script>
+{% endblock %}

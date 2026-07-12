@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <p class="eyebrow mb-2">Walking skeleton</p>
+      <h1 class="display-4 fw-semibold mb-3">{{ app_name }}</h1>
+      <p class="lead mb-4">
+        A governed orchestration platform scaffolded for story-to-PR runs, approvals, and audit.
+      </p>
+
+      <div class="d-flex flex-wrap gap-3 align-items-center">
+        <a class="btn btn-primary" href="{{ health_url }}">Health check</a>
+        <a class="btn btn-outline-secondary" href="{{ api_docs_url }}">API docs</a>
+        <span class="status-pill">{{ status }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
