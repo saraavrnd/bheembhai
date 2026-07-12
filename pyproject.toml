@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beembhai"
+version = "0.1.0"
+description = "BeemBhai governed workflow orchestration platform"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi==0.139.0",
+    "uvicorn[standard]==0.51.0",
+    "jinja2==3.1.6",
+    "sqlalchemy==2.0.51",
+    "alembic==1.18.5",
+    "psycopg[binary]==3.2.12",
+    "pydantic==2.13.4",
+    "aio-pika==10.0.1",
+    "redis==8.0.1",
+    "argon2-cffi==25.1.0",
+    "itsdangerous==2.2.0",
+    "httpx>=0.28,<0.29",
+    "minio==7.2.20",
+    "cryptography==49.0.0",
+]
+
+[project.scripts]
+beembhai-api = "app.main:main"
+beembhai-worker = "app.worker.main:main"
+beembhai-executor = "app.executor.main:main"
+beembhai-admin = "app.cli.admin_handler:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1,<10.0",
+    "pytest-asyncio>=1.4,<1.5",
+    "playwright>=1.61,<1.62",
+    "pytest-playwright>=0.8,<0.9",
+    "ruff>=0.13,<0.14",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+markers = [
+    "e2e: end-to-end browser-driven tests",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]

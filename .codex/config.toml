@@ -1,0 +1,75 @@
+# ==========================================
+# Hook Configuration
+# ==========================================
+[features]
+hooks = true
+
+[hooks]
+
+[[hooks.SessionStart]]
+matcher = "startup|resume|clear|compact"
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$(git rev-parse --show-toplevel)/.agents/skills/_tooling/run_ledger.py" hook'
+timeout = 30
+statusMessage = "Recording session start"
+
+[[hooks.UserPromptSubmit]]
+
+[[hooks.UserPromptSubmit.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$(git rev-parse --show-toplevel)/.agents/skills/_tooling/run_ledger.py" hook'
+timeout = 30
+statusMessage = "Recording prompt"
+
+[[hooks.PostToolUse]]
+matcher = "^Bash$|^apply_patch$|^mcp__.*$"
+
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$(git rev-parse --show-toplevel)/.agents/skills/_tooling/run_ledger.py" hook'
+timeout = 30
+statusMessage = "Recording tool result"
+
+[[hooks.SubagentStop]]
+matcher = ".*"
+
+[[hooks.SubagentStop.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$(git rev-parse --show-toplevel)/.agents/skills/_tooling/run_ledger.py" hook'
+timeout = 30
+statusMessage = "Recording subagent stop"
+
+[[hooks.Stop]]
+
+[[hooks.Stop.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$(git rev-parse --show-toplevel)/.agents/skills/_tooling/run_ledger.py" hook'
+timeout = 30
+statusMessage = "Recording turn stop"
+
+# ==========================================
+# Jira MCP Server Configuration
+# ==========================================
+[mcp_servers.jira]
+command = "/home/fusiongamingmasterpc/projects/beembhai/development/codebase/bheembhai/scripts/jira_mcp.sh"
+args = []
+
+
+# ==========================================
+# GitHub MCP Server Configuration
+# ==========================================
+[mcp_servers.github]
+command = "dotenv"
+args = ["--", "npx", "-y", "@modelcontextprotocol/server-github"]
+env = { GITHUB_PERSONAL_ACCESS_TOKEN = "$GH_TOKEN" }
+
+[mcp_servers.github.tools.search_issues]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.search_repositories]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.search_users]
+approval_mode = "approve"
