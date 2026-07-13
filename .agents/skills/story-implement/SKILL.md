@@ -67,6 +67,10 @@ Then check:
    consumer before its producer. If no sequence exists for the epic yet, recommend running
    `epic-sequence` first; the user may override and proceed for a story with no obvious
    dependencies.
+4. **Branch hygiene?** Resolve the expected feature branch name for the story key:
+   `feat/<STORY_KEY>-<short-slug>`. If the workspace is already on a different story branch,
+   do not continue on it by accident. Create or switch to the correct branch before Step 1 of
+   `implement`, or stop and ask the user to reconcile the branch state first.
 
 ### Picking the next story (optional convenience)
 If invoked without a specific key (e.g. "implement the next story in LEARN-11"), read
@@ -122,6 +126,10 @@ Before presenting the note, confirm it names the durable system of record for an
 entity the story touches. If the note can be satisfied by a file-backed, in-memory, or other
 container-local shim instead of the architecture's source of truth, send it back to
 `story-design` (or `tech-design` if the gap is architectural) before moving on.
+
+The downstream `implement` step creates the story branch from `origin/main`, so any local
+uncommitted or unpushed work that should be included in the story must be committed or stashed
+before the loop starts. That keeps every story branch based on the latest merged remote main.
 
 It produces the thin design note and may **escalate** (the story needs an architecture change).
 Handle the two outcomes:
@@ -205,6 +213,9 @@ skill again with the next key.
   clean habit is: artifact written → staged and committed in the same step.
 - **Idempotent-minded.** If re-invoked on a story already mid-loop (branch/PR exists), detect the
   current state and resume from the right step rather than starting over or duplicating a PR.
+- **Branch-accurate.** Every story run must end up on the branch for that story key. If the active
+  branch belongs to a different story, stop the run or switch to the correct branch before work
+  proceeds.
 - **Compact context at checkpoints.** In a single uninterrupted session, context only grows —
   every step re-reads everything before it. **`/compact` is a CLI command only the USER can run —
   the agent cannot invoke it.** So at each flush point the agent must PAUSE and explicitly ask the

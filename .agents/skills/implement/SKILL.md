@@ -58,8 +58,15 @@ that matters: make the tests pass by **building the feature**, never by weakenin
 ## Procedure
 
 ### Step 1 — Create the story branch
-Branch from the main line: `feat/<STORY_KEY>-<short-slug>` (e.g.
+Fetch `origin` and branch from `origin/main`: `feat/<STORY_KEY>-<short-slug>` (e.g.
 `feat/LEARN-21-upload-course-materials`). All work happens here.
+
+If the developer already has local uncommitted or unpushed work on `main` that should be part of
+the story, commit or stash it before creating the story branch; this step intentionally starts
+from the remote main line so the branch base is always the latest merged code.
+If the workspace is already on a different story branch, do not continue there by accident:
+create or switch to the expected `feat/<STORY_KEY>-<short-slug>` branch from `origin/main`
+before writing code. Never reuse a previous story's branch for a new story.
 
 ### Step 2 — Re-read the design and the tests
 Confirm the interfaces in the story-design note match what the tests call. If they've diverged

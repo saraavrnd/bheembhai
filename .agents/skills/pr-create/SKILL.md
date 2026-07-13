@@ -77,6 +77,8 @@ git commit -m "chore(<STORY_KEY>): add missing story artifact files"
 Ensure the branch is `feat/<STORY_KEY>-<slug>`, committed with a message referencing the Jira
 key (e.g. `LEARN-21: upload course materials`). Push it via the GitHub MCP. If the MCP exposes
 no push tool, fall back to `git push` and continue.
+If the active branch does not match the story key, stop before pushing or opening the PR and
+reconcile the branch name first. Do not open a PR from a previous story's branch.
 
 ### Step 3 — Assemble the PR body
 Fill the installed PR template from the loop's artifacts:

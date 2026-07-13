@@ -64,6 +64,14 @@ areas FA-N). If given a free-form PRD, first normalise it into that shape before
   scope can be filtered later.
 - Order the resulting epics to make dependency flow obvious when that helps readability.
   Foundational epics that unblock others should come earlier than dependent epics.
+- Run a **lifecycle completeness** pass while grouping:
+  - For every capability, ask what prerequisite actors, entities, or states it depends on.
+  - For every prerequisite actor or entity, make its lifecycle explicit: created by another
+    requirement, supplied externally, or intentionally out of scope.
+  - For every persisted core entity or state, confirm which requirement creates it before
+    other requirements consume it.
+  - If a requirement assumes an existing actor, entity, or state and no requirement creates
+    it, either add the missing requirement, split the epic, or document the assumption clearly.
 
 ### Step 2 — Write each epic (use `templates/epic.md.tmpl`)
 Each epic needs:
@@ -118,6 +126,9 @@ Description, Labels) that the user can import via Jira's CSV importer, and still
   which it should be built.
 - If the epic has an internal dependency chain, document the preferred implementation order in
   the epic body rather than leaving it implicit.
+- If an epic contains a flow that depends on an actor, entity, or state already existing, make
+  that dependency explicit in the epic body and/or split out the prerequisite story instead of
+  burying it inside another requirement.
 
 ## Reference files
 - `templates/epic.md.tmpl` — epic structure.
