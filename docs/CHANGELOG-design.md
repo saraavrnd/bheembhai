@@ -15,3 +15,4 @@
 
 - Recorded BEEM-17 local user registration as an incremental auth-flow implementation within the approved architecture.
 - Recorded BEEM-18 browser signup as a thin UI addition that reuses the approved auth registration flow and existing Jinja2 auth-card patterns.
+- Recorded BEEM-14 sign-in, verification, and password-reset flows as incremental auth/session behavior within the approved architecture.
