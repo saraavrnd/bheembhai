@@ -10,3 +10,7 @@
 ## 2026-07-12
 
 - Recorded BEEM-16 bootstrap-admin story completion as an incremental auth-flow implementation within the approved architecture.
+
+## 2026-07-13
+
+- Recorded BEEM-17 local user registration as an incremental auth-flow implementation within the approved architecture.

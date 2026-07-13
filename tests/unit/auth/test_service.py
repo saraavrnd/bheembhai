@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -181,6 +182,78 @@ def test_upsert_user_updates_existing_record_without_duplicate() -> None:
     assert stored.password_hash == "hashed::UpdatedPassword789!"
     assert stored.platform_role == ADMIN_ROLE
     assert stored.email_verified_at is not None
+    assert len(email_sender.messages) == 0
+
+
+def test_register_user_creates_standard_user_and_sends_verification_email() -> None:
+    service, repository, email_sender = build_service()
+
+    result = service.register_user(
+        email="  New.User@Example.com ",
+        password="SignupPassword123!",
+    )
+
+    stored = repository.find_by_email("new.user@example.com")
+    assert result.action == "created"
+    assert result.verification_email_sent is True
+    assert result.user.email == "new.user@example.com"
+    assert result.user.password_hash == "hashed::SignupPassword123!"
+    assert result.user.platform_role == STANDARD_ROLE
+    assert result.user.email_verified_at is None
+    assert stored is not None
+    assert stored.password_hash == "hashed::SignupPassword123!"
+    assert stored.platform_role == STANDARD_ROLE
+    assert stored.email_verified_at is None
+    assert len(email_sender.messages) == 1
+    assert email_sender.messages[0].to_email == "new.user@example.com"
+    assert email_sender.messages[0].text_content is not None
+    assert "verify-email#token=" in email_sender.messages[0].text_content
+
+
+def test_register_user_rejects_duplicate_email_without_creating_duplicate_user() -> None:
+    service, repository, email_sender = build_service()
+    existing = repository.create_user(
+        email="member@example.com",
+        password_hash="original-hash",
+        platform_role=STANDARD_ROLE,
+    )
+
+    result = service.register_user(
+        email="MEMBER@example.com",
+        password="SignupPassword456!",
+    )
+
+    stored = repository.find_by_email("member@example.com")
+    assert result.action == "skipped"
+    assert result.skipped_reason == "duplicate_email"
+    assert result.user.id == existing.id
+    assert result.user.email == "member@example.com"
+    assert stored is not None
+    assert stored.password_hash == "original-hash"
+    assert len(email_sender.messages) == 0
+
+
+def test_register_user_translates_racing_duplicate_into_conflict(monkeypatch) -> None:
+    service, repository, email_sender = build_service()
+    existing = repository.create_user(
+        email="member@example.com",
+        password_hash="original-hash",
+        platform_role=STANDARD_ROLE,
+    )
+
+    def raise_duplicate(self, session, *, email, password_hash, platform_role, email_verified_at):
+        raise IntegrityError("insert", {}, Exception("duplicate key"))
+
+    monkeypatch.setattr(type(repository), "create_user_in_session", raise_duplicate)
+
+    result = service.register_user(
+        email="member@example.com",
+        password="SignupPassword456!",
+    )
+
+    assert result.action == "skipped"
+    assert result.skipped_reason == "duplicate_email"
+    assert result.user.id == existing.id
     assert len(email_sender.messages) == 0
 
 

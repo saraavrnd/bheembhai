@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import lru_cache
 from pathlib import Path
 from urllib.parse import parse_qs
 
@@ -36,12 +35,10 @@ async def home(request: Request) -> HTMLResponse:
     )
 
 
-@lru_cache(maxsize=1)
-def _build_browser_auth_service(
-    database_url: str,
-    secret_key: str,
-    public_base_url: str,
-) -> AuthService:
+def build_browser_auth_service(settings: object) -> AuthService:
+    database_url = settings.database_url
+    secret_key = settings.secret_key
+    public_base_url = settings.public_base_url
     engine = create_database_engine(database_url)
     repository = SqlAlchemyUserRepository(
         engine=engine,
@@ -57,12 +54,11 @@ def _build_browser_auth_service(
     )
 
 
-def _browser_auth_service(settings: object) -> AuthService:
-    return _build_browser_auth_service(
-        settings.database_url,
-        settings.secret_key,
-        settings.public_base_url,
-    )
+def _browser_auth_service(request: Request) -> AuthService:
+    service = getattr(request.app.state, "browser_auth_service", None)
+    if service is None:
+        raise RuntimeError("browser auth service is not configured")
+    return service
 
 
 async def _read_urlencoded_form(request: Request) -> dict[str, str]:
@@ -98,7 +94,7 @@ def verify_email(request: Request) -> HTMLResponse:
 @router.post("/verify-email", response_class=HTMLResponse, include_in_schema=False)
 async def verify_email_submit(request: Request) -> HTMLResponse:
     settings = get_settings()
-    service = _browser_auth_service(settings)
+    service = _browser_auth_service(request)
     fields = await _read_urlencoded_form(request)
     token = fields.get("token", "").strip()
 
@@ -156,7 +152,7 @@ def reset_password(request: Request) -> HTMLResponse:
 @router.post("/reset-password", response_class=HTMLResponse, include_in_schema=False)
 async def reset_password_submit(request: Request) -> HTMLResponse:
     settings = get_settings()
-    service = _browser_auth_service(settings)
+    service = _browser_auth_service(request)
     fields = await _read_urlencoded_form(request)
     token = fields.get("token", "").strip()
     new_password = fields.get("new_password", "").strip()
