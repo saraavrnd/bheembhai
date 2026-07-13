@@ -1,126 +1,87 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from uuid import uuid4
 
-from fastapi.testclient import TestClient
+import httpx
 
-import app.main as app_main
 from app.auth.repository import STANDARD_ROLE, SqlAlchemyUserRepository
-from app.auth.service import AuthService
-from app.auth.tokens import AuthTokenService
-from app.core.settings import get_settings
-from app.main import create_app
-from app.notifications.email import EmailMessage
+
+BASE_DATABASE_URL = (
+    "postgresql+psycopg://beembhai:beembhai@127.0.0.1:5432/beembhai"
+)
 
 
-class FakePasswordHasher:
-    def hash(self, password: str) -> str:
-        return f"hashed::{password}"
-
-
-@dataclass
-class FakeEmailSender:
-    messages: list[EmailMessage]
-
-    def send(self, message: EmailMessage) -> None:
-        self.messages.append(message)
-
-
-def build_registration_service(
-    database_url: str,
-) -> tuple[AuthService, SqlAlchemyUserRepository, FakeEmailSender]:
-    repository = SqlAlchemyUserRepository.from_database_url(database_url)
+def build_repository() -> SqlAlchemyUserRepository:
+    repository = SqlAlchemyUserRepository.from_database_url(BASE_DATABASE_URL)
     repository.ensure_schema()
-    email_sender = FakeEmailSender(messages=[])
-    service = AuthService(
-        repository=repository,
-        password_hasher=FakePasswordHasher(),
-        token_service=AuthTokenService("test-secret"),
-        public_base_url="http://localhost:8000",
-        email_sender=email_sender,
+    return repository
+
+
+def test_register_endpoint_creates_user_and_returns_user_shape(deployed_api: str) -> None:
+    email = f"visitor-{uuid4().hex[:8]}@example.com"
+    repository = build_repository()
+
+    response = httpx.post(
+        f"{deployed_api}/api/v1/auth/register",
+        json={
+            "email": email.upper(),
+            "password": "SignupPassword123!",
+        },
+        timeout=10.0,
     )
-    return service, repository, email_sender
 
-
-def _build_test_app(monkeypatch, service: AuthService, database_url: str):
-    monkeypatch.setenv("DATABASE_URL", database_url)
-    get_settings.cache_clear()
-    monkeypatch.setattr(
-        app_main,
-        "build_auth_service",
-        lambda *args, **kwargs: service,
-    )
-    return create_app()
-
-
-def test_register_endpoint_creates_user_and_returns_user_shape(monkeypatch, tmp_path) -> None:
-    database_url = f"sqlite+pysqlite:///{tmp_path / 'register.db'}"
-    service, repository, email_sender = build_registration_service(database_url)
-    app = _build_test_app(monkeypatch, service, database_url)
-
-    with TestClient(app) as client:
-        response = client.post(
-            "/api/v1/auth/register",
-            json={
-                "email": "Visitor@Example.com",
-                "password": "SignupPassword123!",
-            },
-        )
-
-    stored = repository.find_by_email("visitor@example.com")
+    stored = repository.find_by_email(email)
     assert response.status_code == 201
     assert stored is not None
     assert response.json() == {
         "id": stored.id,
-        "email": "visitor@example.com",
+        "email": email,
         "platformRole": "STANDARD",
         "emailVerifiedAt": None,
     }
-    assert stored.password_hash == "hashed::SignupPassword123!"
+    assert stored.password_hash != "SignupPassword123!"
     assert stored.platform_role == STANDARD_ROLE
     assert stored.email_verified_at is None
-    assert len(email_sender.messages) == 1
 
 
-def test_register_endpoint_rejects_invalid_input(monkeypatch, tmp_path) -> None:
-    database_url = f"sqlite+pysqlite:///{tmp_path / 'register.db'}"
-    service, repository, email_sender = build_registration_service(database_url)
-    app = _build_test_app(monkeypatch, service, database_url)
+def test_register_endpoint_rejects_invalid_input(deployed_api: str) -> None:
+    repository = build_repository()
 
-    with TestClient(app) as client:
-        response = client.post(
-            "/api/v1/auth/register",
-            json={
-                "email": "not-an-email",
-                "password": "short",
-            },
-        )
+    response = httpx.post(
+        f"{deployed_api}/api/v1/auth/register",
+        json={
+            "email": "not-an-email",
+            "password": "short",
+        },
+        timeout=10.0,
+    )
 
     assert response.status_code == 422
     assert repository.find_by_email("not-an-email") is None
-    assert len(email_sender.messages) == 0
 
 
-def test_register_endpoint_rejects_duplicate_email(monkeypatch, tmp_path) -> None:
-    database_url = f"sqlite+pysqlite:///{tmp_path / 'register.db'}"
-    service, repository, email_sender = build_registration_service(database_url)
-    repository.create_user(
-        email="visitor@example.com",
-        password_hash="existing-hash",
-        platform_role="standard",
+def test_register_endpoint_rejects_duplicate_email(deployed_api: str) -> None:
+    email = f"visitor-{uuid4().hex[:8]}@example.com"
+    repository = build_repository()
+
+    first_response = httpx.post(
+        f"{deployed_api}/api/v1/auth/register",
+        json={
+            "email": email,
+            "password": "SignupPassword123!",
+        },
+        timeout=10.0,
     )
-    app = _build_test_app(monkeypatch, service, database_url)
+    duplicate_response = httpx.post(
+        f"{deployed_api}/api/v1/auth/register",
+        json={
+            "email": email.upper(),
+            "password": "SignupPassword123!",
+        },
+        timeout=10.0,
+    )
 
-    with TestClient(app) as client:
-        response = client.post(
-            "/api/v1/auth/register",
-            json={
-                "email": "Visitor@Example.com",
-                "password": "SignupPassword123!",
-            },
-        )
-
-    assert response.status_code == 409
-    assert response.json()["detail"] == "email already exists"
-    assert repository.find_by_email("visitor@example.com") is not None
-    assert len(email_sender.messages) == 0
+    assert first_response.status_code == 201
+    assert duplicate_response.status_code == 409
+    assert duplicate_response.json()["detail"] == "email already exists"
+    assert repository.find_by_email(email) is not None

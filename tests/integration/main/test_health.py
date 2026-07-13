@@ -1,13 +1,11 @@
-from fastapi.testclient import TestClient
+from __future__ import annotations
 
-from app.main import create_app
+import httpx
 
 
-def test_health_endpoint_returns_ok() -> None:
-    client = TestClient(create_app())
-
-    response = client.get("/health")
-    versioned_response = client.get("/api/v1/health")
+def test_health_endpoint_returns_ok(deployed_api: str) -> None:
+    response = httpx.get(f"{deployed_api}/health", timeout=10.0)
+    versioned_response = httpx.get(f"{deployed_api}/api/v1/health", timeout=10.0)
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

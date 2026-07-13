@@ -8,7 +8,7 @@ Decomposed from [PRD.md](docs/product/PRD.md) for Jira project `BHEEM`.
 
 **Feature area:** FA-1 Projects, Users & Access  
 **Release:** MVP  
-**Goal:** An admin can create projects, assign roles, and users can sign in, verify email, reset passwords, and own runs and approvals with clear access boundaries.
+**Goal:** An admin can create projects, assign roles, and users can register, sign in, verify email, reset passwords, and own runs and approvals with clear access boundaries.
 
 **Covered requirements**
 - FR-001

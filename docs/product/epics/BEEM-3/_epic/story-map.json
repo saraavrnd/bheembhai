@@ -3,6 +3,20 @@
   "project_key": "BEEM",
   "stories": [
     {
+      "story_key": "BEEM-17",
+      "summary": "Register a local user account",
+      "requirement_ids": [
+        "FR-005"
+      ]
+    },
+    {
+      "story_key": "BEEM-18",
+      "summary": "Add browser signup page",
+      "requirement_ids": [
+        "FR-005"
+      ]
+    },
+    {
       "story_key": "BEEM-16",
       "summary": "Bootstrap initial platform admin",
       "requirement_ids": [

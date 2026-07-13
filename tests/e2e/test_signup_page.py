@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import uuid4
+
 import pytest
 from playwright.sync_api import Page
 
@@ -18,7 +20,7 @@ def test_signup_page_renders(page: Page, running_server: str) -> None:
 def test_signup_page_successfully_registers_a_new_user(page: Page, running_server: str) -> None:
     page.goto(f"{running_server}/signup", wait_until="networkidle")
 
-    page.get_by_label("Email").fill("visitor@example.com")
+    page.get_by_label("Email").fill(f"visitor-{uuid4().hex[:8]}@example.com")
     page.get_by_label("Password").fill("SignupPassword123!")
     page.get_by_role("button", name="Create account").click()
 

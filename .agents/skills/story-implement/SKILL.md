@@ -13,7 +13,8 @@ description: >
 compatibility: >
   Tool-agnostic (Claude Code or Codex). Delegates to the six per-story skills (each of which uses
   the Atlassian/GitHub MCPs as needed). Resolves artifact paths from the Project Layout table in
-  AGENTS.md. Runs in the local Docker dev environment. Assumes the repo is already scaffolded
+  AGENTS.md. Runs against the local Docker Compose dev environment, with integration and e2e
+  tests targeting the deployed stack. Assumes the repo is already scaffolded
   (tech-design + project-scaffold done once); if not, it stops and points there first.
 model: haiku   # tier: cheap (haiku=cheap, sonnet=standard, opus=strong)
 

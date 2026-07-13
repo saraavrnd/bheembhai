@@ -5,6 +5,8 @@ from tempfile import mkdtemp
 
 import pytest
 
+from tests.compose_stack import deployed_api_stack
+
 _TEST_DB_DIR = mkdtemp(prefix="beembhai-tests-")
 os.environ.setdefault("DATABASE_URL", f"sqlite+pysqlite:///{_TEST_DB_DIR}/beembhai.db")
 os.environ.setdefault("BEEBHAI_SECRET_KEY", "test-secret-key")
@@ -22,3 +24,9 @@ def app():
     from app.main import create_app
 
     return create_app()
+
+
+@pytest.fixture(scope="session")
+def deployed_api() -> str:
+    with deployed_api_stack() as base_url:
+        yield base_url

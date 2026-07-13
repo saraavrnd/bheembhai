@@ -86,7 +86,6 @@ class AuthService:
         password: str,
     ) -> UserMutationResult:
         normalized_email = self._normalize_email(email)
-        password_hash = self.password_hasher.hash(password)
 
         try:
             with self.repository.session_scope() as session:
@@ -98,6 +97,7 @@ class AuthService:
                         skipped_reason="duplicate_email",
                     )
 
+                password_hash = self.password_hasher.hash(password)
                 user = self.repository.create_user_in_session(
                     session,
                     email=normalized_email,

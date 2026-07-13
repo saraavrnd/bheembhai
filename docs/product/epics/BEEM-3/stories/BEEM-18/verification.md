@@ -25,7 +25,7 @@ tests/e2e/test_signup_page.py::test_signup_page_successfully_registers_a_new_use
 tests/integration/auth/test_register.py::test_register_endpoint_creates_user_and_returns_user_shape PASSED [  9%]
 tests/integration/auth/test_register.py::test_register_endpoint_rejects_invalid_input PASSED [ 11%]
 tests/integration/auth/test_register.py::test_register_endpoint_rejects_duplicate_email PASSED [ 13%]
-tests/integration/main/test_bootstrap_startup.py::test_app_startup_serves_health_without_bootstrapping_admin PASSED [ 16%]
+tests/integration/main/test_bootstrap_startup.py::test_deployed_api_serves_health_routes PASSED [ 16%]
 tests/integration/main/test_health.py::test_health_endpoint_returns_ok PASSED [ 18%]
 tests/unit/auth/test_service.py::test_bootstrap_creates_first_platform_admin_and_sends_activation_email PASSED [ 20%]
 tests/unit/auth/test_service.py::test_bootstrap_is_idempotent_when_admin_already_exists PASSED [ 23%]
@@ -64,14 +64,7 @@ tests/unit/web/test_verify_email.py::test_reset_password_submit_confirms_new_pas
 tests/unit/web/test_verify_email.py::test_reset_password_submit_shows_failure_for_invalid_token PASSED [100%]
 
 =============================== warnings summary ===============================
-.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
-  /home/fusiongamingmasterpc/projects/beembhai/development/codebase/bheembhai/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
-    from starlette.testclient import TestClient as TestClient  # noqa
-
 app/main.py:59: 1 warning
-tests/integration/auth/test_register.py: 3 warnings
-tests/integration/main/test_bootstrap_startup.py: 1 warning
-tests/integration/main/test_health.py: 1 warning
 tests/unit/main/test_main.py: 1 warning
 tests/unit/web/test_signup.py: 3 warnings
 tests/unit/web/test_verify_email.py: 7 warnings
@@ -84,9 +77,6 @@ tests/unit/web/test_verify_email.py: 7 warnings
     @app.on_event("startup")
 
 .venv/lib/python3.13/site-packages/fastapi/applications.py:4675: 2 warnings
-tests/integration/auth/test_register.py: 6 warnings
-tests/integration/main/test_bootstrap_startup.py: 2 warnings
-tests/integration/main/test_health.py: 2 warnings
 tests/unit/main/test_main.py: 2 warnings
 tests/unit/web/test_signup.py: 6 warnings
 tests/unit/web/test_verify_email.py: 14 warnings
@@ -99,9 +89,6 @@ tests/unit/web/test_verify_email.py: 14 warnings
     return self.router.on_event(event_type)  # ty: ignore[deprecated]
 
 app/main.py:63: 1 warning
-tests/integration/auth/test_register.py: 3 warnings
-tests/integration/main/test_bootstrap_startup.py: 1 warning
-tests/integration/main/test_health.py: 1 warning
 tests/unit/main/test_main.py: 1 warning
 tests/unit/web/test_signup.py: 3 warnings
 tests/unit/web/test_verify_email.py: 7 warnings
@@ -114,7 +101,7 @@ tests/unit/web/test_verify_email.py: 7 warnings
     @app.on_event("startup")
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================= 43 passed, 69 warnings in 3.11s ========================
+======================= 43 passed, 49 warnings in 18.60s ======================
 ```
 - [x] Full test suite green
 - [x] Lint clean
