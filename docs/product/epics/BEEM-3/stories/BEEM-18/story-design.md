@@ -35,7 +35,10 @@ Add a shared registration method to the auth service that normalizes email, reje
 ## Test surface
 - [x] Unit:
 - [x] Integration:
-- [ ] E2E:
+- [x] E2E:
+
+The browser page is part of the user-facing story, so a minimal Playwright pass should cover
+page render plus the successful submit flow instead of relying only on backend tests.
 
 ## Out of scope
 Sign in, email verification activation, password reset, MFA, SSO, social login, invite-only provisioning, and admin-only provisioning.
