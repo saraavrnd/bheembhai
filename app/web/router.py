@@ -97,6 +97,27 @@ def _signup_context(
     }
 
 
+def _login_context(
+    *,
+    settings: object,
+    state: str,
+    heading: str,
+    message: str,
+    email_value: str = "",
+    errors: list[str] | None = None,
+) -> dict[str, object]:
+    return {
+        "app_name": settings.app_name,
+        "state": state,
+        "heading": heading,
+        "message": message,
+        "home_url": "/",
+        "post_url": "/login",
+        "email_value": email_value,
+        "errors": errors or [],
+    }
+
+
 def _validate_signup_input(email: str, password: str) -> list[str]:
     errors: list[str] = []
     if not _EMAIL_PATTERN.match(email):
@@ -104,6 +125,95 @@ def _validate_signup_input(email: str, password: str) -> list[str]:
     if len(password) < 12:
         errors.append("Password must be at least 12 characters.")
     return errors
+
+
+def _validate_login_input(email: str, password: str) -> list[str]:
+    errors: list[str] = []
+    if not _EMAIL_PATTERN.match(email):
+        errors.append("Enter a valid email address.")
+    if not password:
+        errors.append("Enter your password.")
+    return errors
+
+
+@router.get("/login", response_class=HTMLResponse, include_in_schema=False)
+def login(request: Request) -> HTMLResponse:
+    settings = get_settings()
+    return templates.TemplateResponse(
+        request,
+        "auth/login.html",
+        _login_context(
+            settings=settings,
+            state="pending",
+            heading="Sign in",
+            message="Use your email address and password to access your account.",
+        ),
+    )
+
+
+@router.post("/login", response_class=HTMLResponse, include_in_schema=False)
+async def login_submit(request: Request) -> HTMLResponse:
+    settings = get_settings()
+    fields = await _read_urlencoded_form(request)
+    email = fields.get("email", "").strip()
+    password = fields.get("password", "")
+
+    validation_errors = _validate_login_input(email, password)
+    if validation_errors:
+        return templates.TemplateResponse(
+            request,
+            "auth/login.html",
+            _login_context(
+                settings=settings,
+                state="error",
+                heading="Sign in",
+                message="Please fix the highlighted fields and try again.",
+                email_value=email,
+                errors=validation_errors,
+            ),
+        )
+
+    try:
+        user = _auth_service(request).authenticate_user(email=email, password=password)
+    except PermissionError:
+        return templates.TemplateResponse(
+            request,
+            "auth/login.html",
+            _login_context(
+                settings=settings,
+                state="error",
+                heading="Verify your email",
+                message="Please verify your email address before signing in.",
+                email_value=email,
+                errors=["Please verify your email address before signing in."],
+            ),
+        )
+    except ValueError:
+        return templates.TemplateResponse(
+            request,
+            "auth/login.html",
+            _login_context(
+                settings=settings,
+                state="error",
+                heading="Sign in failed",
+                message="Incorrect email or password.",
+                email_value=email,
+                errors=["Incorrect email or password."],
+            ),
+        )
+
+    request.session["user_id"] = user.id
+    return templates.TemplateResponse(
+        request,
+        "auth/login.html",
+        _login_context(
+            settings=settings,
+            state="success",
+            heading="Signed in",
+            message="You are signed in and ready to continue.",
+            email_value=email,
+        ),
+    )
 
 
 @router.get("/verify-email", response_class=HTMLResponse, include_in_schema=False)

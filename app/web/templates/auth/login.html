@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-card container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="auth-card">
+        <p class="eyebrow mb-2">Account access</p>
+        <h1 class="display-4 fw-semibold mb-3">{{ heading }}</h1>
+        <p class="lead mb-4">{{ message }}</p>
+
+        {% if state == "success" %}
+          <div class="signin-success mb-4">
+            <p class="auth-meta mb-2">
+              Signed in as <strong>{{ email_value }}</strong>.
+            </p>
+            <p class="auth-meta mb-0">
+              Your authenticated session is active now.
+            </p>
+          </div>
+        {% else %}
+          {% if errors %}
+            <div class="signin-errors mb-4" role="alert" aria-live="polite">
+              <ul class="error-list">
+                {% for error in errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <form method="post" action="{{ post_url }}">
+            <div class="mb-3">
+              <label class="form-label" for="email">Email</label>
+              <input
+                class="form-control"
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                value="{{ email_value | default('') }}"
+              >
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="password">Password</label>
+              <input
+                class="form-control"
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+              >
+            </div>
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+              <button class="btn btn-primary" type="submit">Sign in</button>
+              <a class="btn btn-outline-secondary" href="{{ home_url }}">Go home</a>
+              <span class="status-pill status-pill--{{ state }}">{{ state }}</span>
+            </div>
+          </form>
+        {% endif %}
+
+        {% if state == "success" %}
+          <div class="d-flex flex-wrap gap-3 align-items-center">
+            <a class="btn btn-primary" href="{{ home_url }}">Go home</a>
+            <span class="status-pill status-pill--{{ state }}">{{ state }}</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

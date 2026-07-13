@@ -232,6 +232,22 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.signin-success,
+.signin-errors {
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+}
+
+.signin-success {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+}
+
+.signin-errors {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
 .error-list {
   margin: 0;
   padding-left: 1.25rem;
