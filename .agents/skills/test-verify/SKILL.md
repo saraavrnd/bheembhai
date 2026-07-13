@@ -59,9 +59,10 @@ meaningful.
 
 ### Step 1 — Run the full suite, lint, and coverage
 Run the entire test suite (not just this story's tests — catch regressions), the linter, and the
-coverage report. Capture raw output. Prefer the most verbose practical mode for the test runner
-(`pytest -vv` instead of `-q`) so the report records which tests actually executed. A pass
-requires: full suite green, lint clean, coverage gate (if defined) met.
+coverage report. Capture raw output and preserve the executed test names in the report. Use the
+most verbose practical mode for the test runner (`pytest -vv` instead of `-q`) so reviewers can
+see exactly which tests ran and passed. A pass requires: full suite green, lint clean, coverage
+gate (if defined) met.
 
 ### Step 2 — Confirm acceptance-scenario coverage
 Cross-check `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/test-plan.md` against the actual tests in the branch:
@@ -95,7 +96,8 @@ Write `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/verification.md`:
 The verification report should preserve the current summary structure, and it should also include
 the full raw command evidence for each verification command run. Prefer separate evidence blocks
 for the test suite, lint, and coverage commands so reviewers can see the executed test names and
-the exact command output without losing the summary table.
+the exact command output without losing the summary table. Do not use quiet mode for the test
+runner when generating the verification report.
 
 ### Step 6 — Hand off
 On PASS, tell the user the story is verified and the next step is `pr-create`. On BLOCK, state
