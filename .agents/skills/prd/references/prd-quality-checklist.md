@@ -20,6 +20,13 @@ Run through this before finishing. The PRD must pass all of these to be decompos
 - [ ] Security/privacy and (if relevant) compliance requirements are present, not assumed.
 - [ ] Out-of-scope is explicit, so decomposition doesn't over-reach.
 
+## Lifecycle completeness
+- [ ] For every capability, the PRD identifies the prerequisite actors, entities, and states it depends on.
+- [ ] For every prerequisite actor or entity, the PRD states how it first comes into existence or marks it as external / out of scope.
+- [ ] For every persisted core entity or state, the PRD names the requirement that creates it before other requirements consume it.
+- [ ] If a requirement assumes an existing actor, entity, or state, that prerequisite is either another requirement or a clearly documented assumption.
+- [ ] If multiple lifecycle or ownership models are plausible, the PRD resolves the choice instead of leaving it implicit.
+
 ## Common fixes
 - A vague requirement → split into 2-3 atomic ones.
 - A "the system is fast/secure/usable" line → convert to a measurable NFR.

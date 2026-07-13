@@ -60,6 +60,14 @@ written from them directly. These acceptance criteria are the contract that the 
 From `epic-map.json`, get the FR/NFR IDs this epic covers. Pull their exact wording from the
 PRD. These define what the stories must collectively satisfy.
 
+Before slicing, run a **story-readiness** check:
+- If a story would assume an actor/entity/state exists, verify another requirement or story
+  creates it first.
+- If the epic leaves a prerequisite lifecycle ambiguous, stop and send that ambiguity back to
+  `prd-decompose` or `prd` rather than hiding it inside a story.
+- If the epic mixes prerequisite creation and usage in one requirement, split them into separate
+  stories unless the combined slice is still a single testable user-visible outcome.
+
 ### Step 2 — Slice into stories
 - Each story is **one coherent slice of user-visible value** — vertical, not a technical layer.
   ("As a teacher I can upload a course PDF and see it accepted" — not "build the upload
@@ -115,6 +123,10 @@ Each Given/When/Then must be executable as a test with no further interpretation
     message "File exceeds 25 MB limit" and nothing is stored.
 
 If a criterion can't be turned into a test without guessing, rewrite it.
+
+If a story would require a missing prerequisite actor, entity, or state that no story in the
+epic creates, do not paper over it with an assumption; flag the gap and route it back to
+epic/PRD review.
 
 ## If the Atlassian MCP is not connected
 Fall back to `jira-stories-<EPIC_KEY>-import.csv` (Summary, Issue Type, Description, Parent/
