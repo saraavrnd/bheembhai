@@ -1,8 +1,85 @@
 # Stories — BEEM-3 (Project access, identity & run ownership)
 
 Epic `BEEM-3` covers FR-001, FR-002, FR-003, FR-004, FR-005, and FR-006. It has been decomposed
-into 5 stories below. `BEEM-16` is a bootstrap prerequisite that seeds the first platform admin;
-the remaining stories then build on that identity and access foundation.
+into 7 stories below. `BEEM-17` is the regular-user signup prerequisite, and `BEEM-16` is the
+bootstrap prerequisite that seeds the first platform admin; the remaining stories then build on
+that identity and access foundation.
+
+---
+
+## STORY: Register a local user account  (BEEM-17)
+**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 3 · **Labels:** fa-1, mvp
+
+### Story
+As a **visitor**, I want **to register a local account with my email and password**, so that **I can activate my account and later sign in**.
+
+### Acceptance Criteria
+**Scenario: New user registration creates an account**
+- Given an unauthenticated visitor submits a new email address and a valid password
+- When they register
+- Then a user record is created with that email address, a hashed password, and an unverified email state
+
+**Scenario: Registration sends a verification email**
+- Given registration succeeds
+- When the account is created
+- Then a verification email is sent to that email address
+
+**Scenario: Duplicate email registration is rejected**
+- Given an email address already exists
+- When registration is attempted with that email address
+- Then the request is rejected and no duplicate user is created
+
+**Scenario: Invalid registration input is rejected**
+- Given the email address or password is missing or invalid
+- When registration is attempted
+- Then the request is rejected with a clear validation error and no user is created
+
+### Covered requirements
+- FR-005
+
+### Out of scope
+Email verification activation, sign in, password reset, MFA, SSO, social login, invite-only or admin-only provisioning models, and bootstrap admin creation.
+
+### Notes / dependencies
+Depends on the email delivery boundary from the integrations epic. This story creates the prerequisite user account for the authentication flow in `BEEM-14`.
+
+---
+
+## STORY: Add browser signup page  (BEEM-18)
+**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 3 · **Labels:** fa-1, frontend, mvp
+
+### Story
+As a **visitor**, I want **a browser signup page with email and password fields**, so that **I can create a local account from the web UI instead of using the API directly**.
+
+### Acceptance Criteria
+**Scenario: Signup page renders the form**
+- Given a visitor opens the signup page
+- When the page loads
+- Then the email and password fields, a submit button, and a sign-up heading are visible
+
+**Scenario: Successful signup creates an account and shows the next step**
+- Given a visitor enters a new email address and a valid password
+- When they submit the signup form
+- Then the account is created, a verification email is sent, and the page shows a success state that directs them to verify their email
+
+**Scenario: Duplicate email signup is rejected**
+- Given an email address already exists
+- When the visitor submits the signup form with that email address
+- Then the request is rejected and the page shows a clear duplicate-email error
+
+**Scenario: Invalid signup input is rejected**
+- Given the email address or password is missing or invalid
+- When the visitor submits the signup form
+- Then the page shows validation errors and no account is created
+
+### Covered requirements
+- FR-005
+
+### Out of scope
+Sign in, email verification activation, password reset, MFA, SSO, social login, invite-only provisioning, and admin-only provisioning.
+
+### Notes / dependencies
+Depends on `BEEM-17`, which provides the registration API and verification-email flow. This story should reuse the existing browser UI patterns used by the verification and reset-password pages and remain a thin UI layer over the existing registration flow.
 
 ---
 
@@ -166,7 +243,7 @@ As a **user**, I want **to sign in with email/password, verify my email, and res
 MFA, SSO, social login, and account recovery flows outside email verification and password reset.
 
 ### Notes / dependencies
-Depends on the authentication baseline and email delivery plumbing from the integrations epic.
+Depends on the local user registration story and email delivery plumbing from the integrations epic.
 
 ---
 

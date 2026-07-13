@@ -20,9 +20,9 @@ be expensive.
 | Layer | Runner | What it covers |
 |------|--------|----------------|
 | Unit | pytest | Domain rules, validators, role checks, routing decisions, notification matching, and small adapter behavior. |
-| Integration | pytest with disposable Postgres, RabbitMQ, Redis, MinIO, and containerized executor runs | Orchestration, persistence, retry behavior, approval resume, cost rollup, artifact persistence, and audit logging. |
+| Integration | pytest against the deployed Docker Compose stack | API behavior, persistence, routing, state transitions, and service-to-service boundaries exercised through the running containers. |
 | API contract | pytest against the generated OpenAPI schema | Request and response validation, enums, and status codes. |
-| End-to-end | pytest-playwright + Playwright | Login, project setup, dashboard views, approval actions, and run inspection. |
+| End-to-end | pytest-playwright + Playwright against the deployed Docker Compose stack | Login, project setup, dashboard views, approval actions, and run inspection in a real browser. |
 
 ## Test coverage by feature
 
@@ -51,9 +51,9 @@ be expensive.
 
 ## Test data and fixtures
 
-- Use factory helpers for users, projects, workflows, policies, runs, steps, and attempts.
+- Use factory helpers for pure unit tests, but prefer real HTTP calls for integration tests.
 - Seed a small fixed workflow for the story-to-PR path so orchestration tests remain readable.
-- Keep external adapters behind test doubles unless the test is explicitly an integration test.
+- Keep external adapters behind test doubles unless the test is explicitly an integration or e2e test running against the deployed stack.
 - Use deterministic timestamps and IDs in unit tests where possible.
 
 ## What we do not test by default
@@ -65,3 +65,11 @@ be expensive.
 
 Those are integration boundaries, not app code responsibilities.
 
+## Deployment-backed test rule
+
+- Integration and end-to-end tests should run against the Docker Compose deployment used by the
+  local development stack, not against `TestClient` or a local app subprocess, unless a story
+  design explicitly documents a narrower exception.
+- The deployed API should be treated as the system under test for request/response behavior,
+  persistence, routing, and browser journeys.
+- Unit tests remain in-process and may still use fakes or direct object construction.

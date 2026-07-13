@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from urllib.parse import parse_qs
 
@@ -18,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 router = APIRouter()
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -61,10 +63,47 @@ def _browser_auth_service(request: Request) -> AuthService:
     return service
 
 
+def _auth_service(request: Request) -> AuthService:
+    service = getattr(request.app.state, "auth_service", None)
+    if service is None:
+        raise RuntimeError("auth service is not configured")
+    return service
+
+
 async def _read_urlencoded_form(request: Request) -> dict[str, str]:
     body = (await request.body()).decode("utf-8")
     parsed = parse_qs(body, keep_blank_values=True)
     return {key: values[-1] for key, values in parsed.items() if values}
+
+
+def _signup_context(
+    *,
+    settings: object,
+    state: str,
+    heading: str,
+    message: str,
+    email_value: str = "",
+    errors: list[str] | None = None,
+) -> dict[str, object]:
+    return {
+        "app_name": settings.app_name,
+        "state": state,
+        "heading": heading,
+        "message": message,
+        "home_url": "/",
+        "post_url": "/signup",
+        "email_value": email_value,
+        "errors": errors or [],
+    }
+
+
+def _validate_signup_input(email: str, password: str) -> list[str]:
+    errors: list[str] = []
+    if not _EMAIL_PATTERN.match(email):
+        errors.append("Enter a valid email address.")
+    if len(password) < 12:
+        errors.append("Password must be at least 12 characters.")
+    return errors
 
 
 @router.get("/verify-email", response_class=HTMLResponse, include_in_schema=False)
@@ -188,4 +227,69 @@ async def reset_password_submit(request: Request) -> HTMLResponse:
             "post_url": "/reset-password",
             "token": token,
         },
+    )
+
+
+@router.get("/signup", response_class=HTMLResponse, include_in_schema=False)
+def signup(request: Request) -> HTMLResponse:
+    settings = get_settings()
+    return templates.TemplateResponse(
+        request,
+        "auth/signup.html",
+        _signup_context(
+            settings=settings,
+            state="pending",
+            heading="Sign up",
+            message="Create your local account with an email address and password.",
+        ),
+    )
+
+
+@router.post("/signup", response_class=HTMLResponse, include_in_schema=False)
+async def signup_submit(request: Request) -> HTMLResponse:
+    settings = get_settings()
+    fields = await _read_urlencoded_form(request)
+    email = fields.get("email", "").strip()
+    password = fields.get("password", "")
+
+    validation_errors = _validate_signup_input(email, password)
+    if validation_errors:
+        return templates.TemplateResponse(
+            request,
+            "auth/signup.html",
+            _signup_context(
+                settings=settings,
+                state="error",
+                heading="Sign up",
+                message="Please fix the highlighted fields and try again.",
+                email_value=email,
+                errors=validation_errors,
+            ),
+        )
+
+    result = _auth_service(request).register_user(email=email, password=password)
+    if result.action == "skipped":
+        return templates.TemplateResponse(
+            request,
+            "auth/signup.html",
+            _signup_context(
+                settings=settings,
+                state="error",
+                heading="Sign up",
+                message="An account with that email already exists.",
+                email_value=email,
+                errors=["An account with that email already exists."],
+            ),
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "auth/signup.html",
+        _signup_context(
+            settings=settings,
+            state="success",
+            heading="Check your email",
+            message="We created your account. Verify your inbox to activate it.",
+            email_value=email,
+        ),
     )

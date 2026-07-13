@@ -9,9 +9,10 @@ description: >
   green", "is LEARN-21 done", "run the gate", or "confirm before PR". This skill is a read-only
   gate — it runs and inspects, it does NOT write features or tests, and it can BLOCK the loop.
 compatibility: >
-  Tool-agnostic (Claude Code or Codex). Runs the project's test/lint/coverage commands in the
-  local Docker dev environment. Reads the story, its test-plan, and the implementation on the
-  branch. Does not modify code.
+  Tool-agnostic (Claude Code or Codex). Runs the project's test/lint/coverage commands against
+  the deployed Docker Compose stack for integration and browser coverage, while unit tests
+  remain in-process. Reads the story, its test-plan, and the implementation on the branch. Does
+  not modify code.
 model: haiku   # tier: cheap (haiku=cheap, sonnet=standard, opus=strong)
 
 ---
@@ -59,9 +60,11 @@ meaningful.
 
 ### Step 1 — Run the full suite, lint, and coverage
 Run the entire test suite (not just this story's tests — catch regressions), the linter, and the
-coverage report. Capture raw output. Prefer the most verbose practical mode for the test runner
-(`pytest -vv` instead of `-q`) so the report records which tests actually executed. A pass
-requires: full suite green, lint clean, coverage gate (if defined) met.
+coverage report. Capture raw output and preserve the executed test names in the report. Use the
+most verbose practical mode for the test runner (`pytest -vv` instead of `-q`) so reviewers can
+see exactly which tests ran and passed. For integration and browser tests, ensure the deployed
+Docker Compose stack is up first and target that running instance. A pass requires: full suite
+green, lint clean, coverage gate (if defined) met.
 
 ### Step 2 — Confirm acceptance-scenario coverage
 Cross-check `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/test-plan.md` against the actual tests in the branch:
@@ -95,7 +98,8 @@ Write `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/verification.md`:
 The verification report should preserve the current summary structure, and it should also include
 the full raw command evidence for each verification command run. Prefer separate evidence blocks
 for the test suite, lint, and coverage commands so reviewers can see the executed test names and
-the exact command output without losing the summary table.
+the exact command output without losing the summary table. Do not use quiet mode for the test
+runner when generating the verification report.
 
 ### Step 6 — Hand off
 On PASS, tell the user the story is verified and the next step is `pr-create`. On BLOCK, state

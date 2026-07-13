@@ -1,46 +1,38 @@
 # Code Review — BEEM-17: Register a local user account
 
-**Advisory** · **Branch:** `feat/BEEM-16-bootstrap-initial-platform-admin` · **Reviewed vs:** main · **Date:** 2026-07-13
+**Advisory** · **Branch:** `feat/BEEM-18-add-browser-signup-page` · **Reviewed vs:** main · **Date:** 2026-07-13
 **Pre-flight:** verification-BEEM-17.md = PASS
 
 ## Severity summary
 | Critical | High | Medium | Low | Nit |
 |:--------:|:----:|:------:|:---:|:---:|
-| 0 | 1 | 1 | 0 | 0 |
-**Advisory note:** Recommend fixing the 1 High before PR; the Medium is worth addressing in the same pass.
+| 0 | 0 | 1 | 0 | 0 |
+
+**Advisory note:** 1 Medium — reasonable to fix before PR, but the implementation is otherwise aligned with the story.
 
 ## Tools run
 ```text
-uv run ruff check . -> All checks passed!
-uv run bandit -q -r app -> failed to spawn (bandit not installed in this environment)
-uv run pip-audit -q -> failed to spawn (pip-audit not installed in this environment)
+uv run ruff check app/auth/service.py app/auth/router.py tests/unit/auth/test_service.py tests/integration/auth/test_register.py -> All checks passed!
 ```
 
 ## Findings
 
 ### 1. Coding standards & conventions
-| # | Severity | Location | Finding | Proposed fix |
-|---|----------|----------|---------|--------------|
-| 1 | Medium | `app/auth/router.py:20-25` | The new auth-service helper still performs lazy construction on the request path and caches the result in `request.app.state`. That hides bootstrap failures until the first signup request and leaves DB/schema initialization tied to request handling instead of startup, which is inconsistent with the browser-auth bootstrap pattern. | Build and cache the auth service during app startup or a lifespan hook, then have the route only read `app.state.auth_service` and fail fast if it is missing. |
+No findings.
 
 ### 2. Security audit
 | # | Severity | Location | Finding (risk) | Proposed fix |
 |---|----------|----------|----------------|--------------|
-| | | | | |
+| 1 | Medium | `app/auth/service.py:88-104` | `register_user()` hashes the supplied password before it knows whether the email is already taken. Because Argon2 hashing is intentionally expensive, repeated duplicate-signup attempts still consume the full password-hash cost even though they will be rejected. That makes this public endpoint easier to abuse for CPU and memory exhaustion. | Move `password_hasher.hash(password)` into the create-user branch after the duplicate lookup so rejected duplicate requests return before any expensive hashing work. |
 
 ### 3. Acceptance-criteria intent
-| # | Severity | Location | Finding | Proposed fix |
-|---|----------|----------|---------|--------------|
-| 2 | High | `app/auth/service.py:90-110` | Duplicate-email rejection depends only on a pre-insert lookup. Two concurrent registrations with the same email can both pass the lookup and one can then fail with an uncaught unique-constraint error, surfacing a 500 instead of the required 409 Conflict. | Catch the database unique-constraint failure around user creation and translate it into the same duplicate-email path, or use a conflict-aware insert so the duplicate case is handled deterministically at the repository boundary. |
+No findings.
 
 ### 4. Maintainability
-| # | Severity | Location | Finding | Proposed fix |
-|---|----------|----------|---------|--------------|
-| | | | | |
+No findings.
 
 ## Fix list for `implement` (ordered by severity)
-1. [High] Harden `AuthService.register_user(...)` against concurrent duplicate signups by translating the database unique-constraint failure into the duplicate-email response instead of letting it bubble as a 500.
-2. [Medium] Move auth-service initialization out of the request path and into app startup or a lifespan hook so `/auth/register` does not hide DB/bootstrap failures behind the first public request.
+1. [Medium] Move password hashing in `AuthService.register_user(...)` so duplicate-email requests are rejected before Argon2 runs.
 
 ---
-*Advisory — blocks nothing. The team picks which findings to fix. Accepted fixes → `implement` applies them → `test-verify` re-runs → `pr-create`. If all waived → straight to `pr-create`.*
+Advisory only. If the team accepts the fix, route it through `implement` and re-run `test-verify` before `pr-create`.

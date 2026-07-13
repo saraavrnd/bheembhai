@@ -1,0 +1,44 @@
+{
+  "BEEM-17": {
+    "depends_on": [],
+    "wave": 1
+  },
+  "BEEM-14": {
+    "depends_on": [
+      "BEEM-17"
+    ],
+    "wave": 2
+  },
+  "BEEM-16": {
+    "depends_on": [
+      "BEEM-14"
+    ],
+    "wave": 3
+  },
+  "BEEM-12": {
+    "depends_on": [
+      "BEEM-16"
+    ],
+    "wave": 4
+  },
+  "BEEM-13": {
+    "depends_on": [
+      "BEEM-12"
+    ],
+    "wave": 5
+  },
+  "BEEM-15": {
+    "depends_on": [
+      "BEEM-12"
+    ],
+    "wave": 5
+  },
+  "_meta": {
+    "epic_key": "BEEM-3",
+    "provisional": true,
+    "sources": [
+      "docs/product/epics/BEEM-3/_epic/stories.md",
+      "docs/product/epics/BEEM-3/stories/BEEM-16/story-design.md"
+    ]
+  }
+}

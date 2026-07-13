@@ -11,8 +11,9 @@ description: >
   and does NOT make tests pass.
 compatibility: >
   Tool-agnostic (Claude Code or Codex). Uses the project's test runners as defined in
-  testing-strategy.md (e.g. pytest, Playwright). Runs in the local Docker dev environment.
-  Reads the story, its story-design note, and the existing test harness from project-scaffold.
+  testing-strategy.md (e.g. pytest, Playwright). Runs against the deployed Docker Compose
+  stack for integration and browser tests, while unit tests may remain in-process. Reads the
+  story, its story-design note, and the existing test harness from project-scaffold.
 model: haiku   # tier: cheap (haiku=cheap, sonnet=standard, opus=strong)
 
 ---
@@ -69,10 +70,12 @@ from the story-design note. The scenarios define behaviour; the interfaces defin
 For each scenario, plan at least one test at the appropriate layer, guided by the design note's
 **domain tag** and test surface:
 - Pure logic / validation → unit test.
-- Endpoint behaviour, DB effects → integration test (backend / full-stack).
+- Endpoint behaviour, DB effects → integration test (backend / full-stack, preferably against
+  the deployed Docker Compose stack).
 - UI component render + loading/error/empty/success states + interactions → component test
   (frontend / full-stack).
-- User-visible flow → e2e test (Playwright) when the test surface calls for it.
+- User-visible flow → e2e test (Playwright) against the deployed app when the test surface
+  calls for it.
 Backend stories lean unit+integration; frontend stories lean component+e2e; full-stack spans both.
 Record the mapping in `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/test-plan.md`. Every scenario must appear.
 
@@ -105,6 +108,9 @@ Use the project's runner and conventions. Each test:
   similar core entity, at least one test must prove the actual persisted row/state exists in the
   declared store (for example, the database or other approved durable backend), not just a local
   file, in-memory list, or mocked return value.
+- For integration and e2e tests, prefer the deployed Docker Compose stack as the system under
+  test. Use TestClient or local doubles only for unit tests or for narrow harness setup that the
+  story-design explicitly allows.
 
 ### Step 4 — Run them and confirm they fail correctly
 Run the new tests. They MUST fail, and fail for the intended reason:

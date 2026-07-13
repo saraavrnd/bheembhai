@@ -14,3 +14,4 @@
 ## 2026-07-13
 
 - Recorded BEEM-17 local user registration as an incremental auth-flow implementation within the approved architecture.
+- Recorded BEEM-18 browser signup as a thin UI addition that reuses the approved auth registration flow and existing Jinja2 auth-card patterns.
