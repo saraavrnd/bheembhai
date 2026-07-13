@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from uuid import uuid4
 
 import httpx
@@ -12,7 +13,8 @@ BASE_DATABASE_URL = (
 
 
 def build_repository() -> SqlAlchemyUserRepository:
-    repository = SqlAlchemyUserRepository.from_database_url(BASE_DATABASE_URL)
+    database_url = os.getenv("TEST_DATABASE_URL", BASE_DATABASE_URL)
+    repository = SqlAlchemyUserRepository.from_database_url(database_url)
     repository.ensure_schema()
     return repository
 

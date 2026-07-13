@@ -1,8 +1,6 @@
 services:
   api:
-    ports:
-      - "127.0.0.1:8010:8000"
     environment:
       BEEBHAI_ENVIRONMENT: test
-      BEEBHAI_PUBLIC_BASE_URL: http://127.0.0.1:8010
+      BEEBHAI_PUBLIC_BASE_URL: ${BEEBHAI_PUBLIC_BASE_URL}
       BEEBHAI_SECRET_KEY: test-secret-key
