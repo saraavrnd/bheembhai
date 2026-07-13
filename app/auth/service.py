@@ -248,7 +248,12 @@ def build_auth_service(
 ) -> AuthService:
     repository = SqlAlchemyUserRepository.from_database_url(settings.database_url)
     repository.ensure_schema()
-    sender = email_sender if email_sender is not None else BrevoEmailSender.from_settings(settings)
+    if email_sender is not None:
+        sender = email_sender
+    elif getattr(settings, "environment", "") == "test":
+        sender = _NoopEmailSender()
+    else:
+        sender = BrevoEmailSender.from_settings(settings)
     return AuthService(
         repository=repository,
         password_hasher=password_hasher or PasswordHasher(),
@@ -256,3 +261,9 @@ def build_auth_service(
         public_base_url=settings.public_base_url,
         email_sender=sender,
     )
+
+
+@dataclass(slots=True)
+class _NoopEmailSender:
+    def send(self, message: EmailMessage) -> None:
+        return None

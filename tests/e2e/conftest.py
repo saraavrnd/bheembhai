@@ -17,6 +17,7 @@ def running_server(tmp_path_factory: pytest.TempPathFactory) -> Iterator[str]:
     base_url = f"http://127.0.0.1:{port}"
     database_path = tmp_path_factory.mktemp("e2e-db") / "beembhai.db"
     env = os.environ.copy()
+    env["BEEBHAI_ENVIRONMENT"] = "test"
     env["DATABASE_URL"] = f"sqlite+pysqlite:///{database_path}"
     process = subprocess.Popen(
         [

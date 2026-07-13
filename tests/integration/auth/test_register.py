@@ -99,3 +99,28 @@ def test_register_endpoint_rejects_invalid_input(monkeypatch, tmp_path) -> None:
     assert response.status_code == 422
     assert repository.find_by_email("not-an-email") is None
     assert len(email_sender.messages) == 0
+
+
+def test_register_endpoint_rejects_duplicate_email(monkeypatch, tmp_path) -> None:
+    database_url = f"sqlite+pysqlite:///{tmp_path / 'register.db'}"
+    service, repository, email_sender = build_registration_service(database_url)
+    repository.create_user(
+        email="visitor@example.com",
+        password_hash="existing-hash",
+        platform_role="standard",
+    )
+    app = _build_test_app(monkeypatch, service, database_url)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": "Visitor@Example.com",
+                "password": "SignupPassword123!",
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "email already exists"
+    assert repository.find_by_email("visitor@example.com") is not None
+    assert len(email_sender.messages) == 0
