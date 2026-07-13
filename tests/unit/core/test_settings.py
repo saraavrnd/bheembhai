@@ -27,6 +27,9 @@ def test_auth_and_email_settings_are_loaded_from_env(monkeypatch) -> None:
 
 
 def test_email_brevo_legacy_names_are_supported(monkeypatch) -> None:
+    monkeypatch.delenv("BREVO_API_KEY", raising=False)
+    monkeypatch.delenv("BREVO_SENDER_EMAIL", raising=False)
+    monkeypatch.delenv("BREVO_SENDER_NAME", raising=False)
     monkeypatch.setenv("EMAIL_BREVO_API_KEY", "legacy-brevo-key")
     monkeypatch.setenv("EMAIL_BREVO_FROM_ADDRESS", "legacy-no-reply@example.com")
     monkeypatch.setenv("EMAIL_BREVO_SENDER_NAME", "Legacy BeemBhai")

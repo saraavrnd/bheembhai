@@ -6,6 +6,7 @@ from typing import Protocol
 from urllib.parse import quote
 
 from argon2 import PasswordHasher
+from sqlalchemy.exc import IntegrityError
 
 from app.auth.repository import ADMIN_ROLE, STANDARD_ROLE, SqlAlchemyUserRepository, UserRecord
 from app.auth.tokens import AuthTokenService, InvalidTokenError
@@ -76,6 +77,53 @@ class AuthService:
             user=user,
             action=action,
             verification_email_sent=verification_email_sent,
+        )
+
+    def register_user(
+        self,
+        *,
+        email: str,
+        password: str,
+    ) -> UserMutationResult:
+        normalized_email = self._normalize_email(email)
+        password_hash = self.password_hasher.hash(password)
+
+        try:
+            with self.repository.session_scope() as session:
+                existing_user = self.repository.find_by_email_in_session(session, normalized_email)
+                if existing_user is not None:
+                    return UserMutationResult(
+                        user=existing_user,
+                        action="skipped",
+                        skipped_reason="duplicate_email",
+                    )
+
+                user = self.repository.create_user_in_session(
+                    session,
+                    email=normalized_email,
+                    password_hash=password_hash,
+                    platform_role=STANDARD_ROLE,
+                    email_verified_at=None,
+                )
+                token = self.token_service.create_email_verification_token(
+                    user_id=user.id,
+                    email=user.email,
+                )
+                self._send_verification_email(user, token)
+        except IntegrityError:
+            existing_user = self.repository.find_by_email(normalized_email)
+            if existing_user is None:
+                raise
+            return UserMutationResult(
+                user=existing_user,
+                action="skipped",
+                skipped_reason="duplicate_email",
+            )
+
+        return UserMutationResult(
+            user=user,
+            action="created",
+            verification_email_sent=True,
         )
 
     def bootstrap_platform_admin(self, *, email: str, password: str) -> UserMutationResult:

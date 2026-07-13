@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import time
@@ -11,9 +12,12 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def running_server() -> Iterator[str]:
+def running_server(tmp_path_factory: pytest.TempPathFactory) -> Iterator[str]:
     port = 8010
     base_url = f"http://127.0.0.1:{port}"
+    database_path = tmp_path_factory.mktemp("e2e-db") / "beembhai.db"
+    env = os.environ.copy()
+    env["DATABASE_URL"] = f"sqlite+pysqlite:///{database_path}"
     process = subprocess.Popen(
         [
             sys.executable,
@@ -25,6 +29,7 @@ def running_server() -> Iterator[str]:
             "--port",
             str(port),
         ],
+        env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
     )
