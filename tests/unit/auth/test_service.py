@@ -19,6 +19,9 @@ class FakePasswordHasher:
     def hash(self, password: str) -> str:
         return f"hashed::{password}"
 
+    def verify(self, hash: str, password: str) -> bool:
+        return hash == f"hashed::{password}"
+
 
 @dataclass
 class FakeEmailSender:
@@ -255,6 +258,56 @@ def test_register_user_translates_racing_duplicate_into_conflict(monkeypatch) ->
     assert result.skipped_reason == "duplicate_email"
     assert result.user.id == existing.id
     assert len(email_sender.messages) == 0
+
+
+def test_authenticate_user_returns_verified_user_for_valid_credentials() -> None:
+    service, repository, _ = build_service()
+    existing = repository.create_user(
+        email="member@example.com",
+        password_hash="hashed::LoginPassword123!",
+        platform_role=STANDARD_ROLE,
+        email_verified_at=datetime.now(UTC),
+    )
+
+    authenticated = service.authenticate_user(
+        email="  MEMBER@example.com ",
+        password="LoginPassword123!",
+    )
+
+    assert authenticated.id == existing.id
+    assert authenticated.email == "member@example.com"
+
+
+def test_authenticate_user_rejects_unverified_users() -> None:
+    service, repository, _ = build_service()
+    repository.create_user(
+        email="member@example.com",
+        password_hash="hashed::LoginPassword123!",
+        platform_role=STANDARD_ROLE,
+        email_verified_at=None,
+    )
+
+    with pytest.raises(PermissionError):
+        service.authenticate_user(
+            email="member@example.com",
+            password="LoginPassword123!",
+        )
+
+
+def test_authenticate_user_rejects_invalid_password() -> None:
+    service, repository, _ = build_service()
+    repository.create_user(
+        email="member@example.com",
+        password_hash="hashed::LoginPassword123!",
+        platform_role=STANDARD_ROLE,
+        email_verified_at=datetime.now(UTC),
+    )
+
+    with pytest.raises(ValueError):
+        service.authenticate_user(
+            email="member@example.com",
+            password="wrong-password",
+        )
 
 
 def test_email_verification_request_and_confirmation_activate_user() -> None:

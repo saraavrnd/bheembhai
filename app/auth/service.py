@@ -16,6 +16,8 @@ from app.notifications.email import BrevoEmailSender, EmailMessage, EmailSender
 class PasswordHasherProtocol(Protocol):
     def hash(self, password: str) -> str: ...
 
+    def verify(self, hash: str, password: str) -> bool | None: ...
+
 
 @dataclass(frozen=True, slots=True)
 class UserMutationResult:
@@ -78,6 +80,23 @@ class AuthService:
             action=action,
             verification_email_sent=verification_email_sent,
         )
+
+    def authenticate_user(self, *, email: str, password: str) -> UserRecord:
+        normalized_email = self._normalize_email(email)
+        user = self.repository.find_by_email(normalized_email)
+        if user is None:
+            raise ValueError("invalid credentials")
+
+        try:
+            password_verified = self.password_hasher.verify(user.password_hash, password)
+        except Exception as exc:  # pragma: no cover - defensive boundary
+            raise ValueError("invalid credentials") from exc
+
+        if password_verified is False:
+            raise ValueError("invalid credentials")
+        if user.email_verified_at is None:
+            raise PermissionError("email address is not verified")
+        return user
 
     def register_user(
         self,

@@ -4,8 +4,10 @@ from pathlib import Path
 
 from fastapi import APIRouter, FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.approvals.router import router as approvals_router
+from app.auth.router import me_router as auth_me_router
 from app.auth.router import router as auth_router
 from app.auth.service import build_auth_service
 from app.config.router import router as config_router
@@ -25,6 +27,7 @@ def _include_api_v1_routes(app: FastAPI, api_version: str) -> None:
     api_v1_router = APIRouter(prefix=f"/api/{api_version}")
 
     api_v1_router.include_router(auth_router)
+    api_v1_router.include_router(auth_me_router)
     api_v1_router.include_router(projects_router)
     api_v1_router.include_router(integrations_router)
     api_v1_router.include_router(config_router)
@@ -48,6 +51,12 @@ def create_app() -> FastAPI:
         docs_url=f"/api/{settings.api_version}/docs",
         openapi_url=f"/api/{settings.api_version}/openapi.json",
         redoc_url=None,
+    )
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.secret_key,
+        session_cookie="bb_session",
+        same_site="lax",
     )
 
     static_dir = BASE_DIR / "web" / "static"

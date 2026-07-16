@@ -126,7 +126,14 @@ def deployed_api_stack(
 
     with _ensure_compose_env_file(base_url=base_url):
         try:
-            up_command = _compose_command("up", "-d", "--wait", "api", project_name=project_name)
+            up_command = _compose_command(
+                "up",
+                "--build",
+                "-d",
+                "--wait",
+                "api",
+                project_name=project_name,
+            )
             subprocess.run(
                 up_command,
                 env=env,
