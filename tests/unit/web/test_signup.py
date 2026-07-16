@@ -63,10 +63,16 @@ def test_signup_page_renders_form(monkeypatch) -> None:
         response = client.get("/signup")
 
     assert response.status_code == 200
-    assert "Sign up" in response.text
+    assert "Create account" in response.text
+    assert "Join BeemBhai, the governed agent-orchestration platform" in response.text
     assert 'name="email"' in response.text
     assert 'name="password"' in response.text
-    assert "Create account" in response.text
+    assert 'name="confirm_password"' in response.text
+    assert "At least 8 characters with a mix of letters, numbers &amp; symbols." in response.text
+    assert "Already have an account?" in response.text
+    assert "Enterprise grade security" in response.text
+    assert "Data privacy by design" in response.text
+    assert "99.9% platform uptime" in response.text
 
 
 def test_signup_submit_shows_validation_errors(monkeypatch) -> None:

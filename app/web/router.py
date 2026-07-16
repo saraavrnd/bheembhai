@@ -146,7 +146,7 @@ def login(request: Request) -> HTMLResponse:
             settings=settings,
             state="pending",
             heading="Sign in",
-            message="Use your email address and password to access your account.",
+            message="",
         ),
     )
 
@@ -183,9 +183,9 @@ async def login_submit(request: Request) -> HTMLResponse:
                 settings=settings,
                 state="error",
                 heading="Verify your email",
-                message="Please verify your email address before signing in.",
+                message="Verify your email before signing in.",
                 email_value=email,
-                errors=["Please verify your email address before signing in."],
+                errors=["Verify your email before signing in."],
             ),
         )
     except ValueError:
@@ -290,7 +290,7 @@ def reset_password(request: Request) -> HTMLResponse:
         {
             "app_name": settings.app_name,
             "state": "pending",
-            "heading": "Reset your password",
+            "heading": "Reset password",
             "message": "Choose a new password to finish resetting your account.",
             "home_url": "/",
             "post_url": "/reset-password",
@@ -349,8 +349,11 @@ def signup(request: Request) -> HTMLResponse:
         _signup_context(
             settings=settings,
             state="pending",
-            heading="Sign up",
-            message="Create your local account with an email address and password.",
+            heading="Create account",
+            message=(
+                "Join BeemBhai, the governed agent-orchestration platform built for secure, "
+                "scalable automation."
+            ),
         ),
     )
 
@@ -370,7 +373,7 @@ async def signup_submit(request: Request) -> HTMLResponse:
             _signup_context(
                 settings=settings,
                 state="error",
-                heading="Sign up",
+                heading="Create account",
                 message="Please fix the highlighted fields and try again.",
                 email_value=email,
                 errors=validation_errors,
@@ -385,7 +388,7 @@ async def signup_submit(request: Request) -> HTMLResponse:
             _signup_context(
                 settings=settings,
                 state="error",
-                heading="Sign up",
+                heading="Create account",
                 message="An account with that email already exists.",
                 email_value=email,
                 errors=["An account with that email already exists."],

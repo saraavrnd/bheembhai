@@ -1,39 +1,70 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero-card container py-5">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-8">
-      <div class="auth-card">
-        <p class="eyebrow mb-2">Account activation</p>
-        <h1 class="display-4 fw-semibold mb-3">{{ heading }}</h1>
-        <p class="lead mb-4">{{ message }}</p>
-
-        {% if verified_email %}
-          <p class="auth-meta mb-4">
-            Verified account: <strong>{{ verified_email }}</strong>
-          </p>
-        {% endif %}
-
-        <form id="verify-form" method="post" action="{{ post_url }}" class="d-none">
-          <input type="hidden" name="token" id="verify-token" value="{{ token | default('') }}">
-        </form>
-
-        <div class="d-flex flex-wrap gap-3 align-items-center">
-          <a class="btn btn-primary" href="{{ home_url }}">Go home</a>
-          <span class="status-pill status-pill--{{ state }}">{{ state }}</span>
-        </div>
-
-        <p class="auth-meta mt-4" id="verify-hint">
-          If this page was opened from your email link, it will verify automatically.
-        </p>
-
-        <noscript>
-          <p class="auth-meta mt-3">
-            JavaScript is required to complete email verification from the link.
-          </p>
-        </noscript>
+<section class="auth-hero auth-hero--verify">
+  <div class="auth-hero__accent auth-hero__accent--verify"></div>
+  <div class="container auth-shell auth-shell--center">
+    <div class="auth-card auth-card--verify">
+      <div class="auth-card__status-row">
+        <span class="auth-chip auth-chip--verified">Verified</span>
       </div>
+
+      <div class="auth-verify-mark" aria-hidden="true">
+        <span class="auth-verify-mark__ring"><span class="auth-verify-mark__icon">✓</span></span>
+      </div>
+
+      <div class="auth-card__header auth-card__header--centered">
+        <h1 class="auth-title">{{ heading }}</h1>
+        <p class="auth-intro auth-intro--compact">{{ message }}</p>
+      </div>
+
+      <section class="auth-flow" aria-label="Verification link flow">
+        <h2>Verification link flow</h2>
+        <div class="auth-flow__grid">
+          <article class="auth-flow__step">
+            <div class="auth-flow__badge auth-flow__badge--blue">✉</div>
+            <h3>Email sent</h3>
+            <p>We’ve sent a verification link to your inbox.</p>
+          </article>
+          <div class="auth-flow__arrow" aria-hidden="true">→</div>
+          <article class="auth-flow__step">
+            <div class="auth-flow__badge auth-flow__badge--blue">↗</div>
+            <h3>Link clicked</h3>
+            <p>You clicked the verification link in your email.</p>
+          </article>
+          <div class="auth-flow__arrow" aria-hidden="true">→</div>
+          <article class="auth-flow__step">
+            <div class="auth-flow__badge auth-flow__badge--green">✓</div>
+            <h3>Email verified</h3>
+            <p>Your email has been successfully verified.</p>
+          </article>
+        </div>
+      </section>
+
+      {% if verified_email %}
+        <p class="auth-meta auth-meta--centered mb-4">
+          Verified account: <strong>{{ verified_email }}</strong>
+        </p>
+      {% endif %}
+
+      <div class="auth-actions auth-actions--center auth-actions--stacked">
+        <a class="btn btn-primary btn-primary--wide" href="{{ home_url }}">Go home</a>
+        <button class="btn btn-link auth-link-button" type="button">Resend email</button>
+      </div>
+
+      <form id="verify-form" method="post" action="{{ post_url }}" class="d-none">
+        <input type="hidden" name="token" id="verify-token" value="{{ token | default('') }}">
+      </form>
+
+      <p class="auth-meta auth-meta--centered" id="verify-hint">
+        If this page was opened from your email link, it will verify automatically.
+      </p>
+
+      <noscript>
+        <p class="auth-meta auth-meta--centered mt-3">
+          JavaScript is required to complete email verification from the link.
+        </p>
+      </noscript>
     </div>
   </div>
 </section>

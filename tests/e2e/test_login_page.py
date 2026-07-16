@@ -30,7 +30,7 @@ def test_login_page_renders(page: Page, running_server: str) -> None:
 
     assert page.get_by_role("heading", name="Sign in").is_visible()
     assert page.get_by_label("Email").is_visible()
-    assert page.get_by_label("Password").is_visible()
+    assert page.get_by_role("textbox", name="Password", exact=True).is_visible()
     assert page.get_by_role("button", name="Sign in").is_visible()
 
 
@@ -47,7 +47,7 @@ def test_login_page_signs_verified_user_in(page: Page, running_server: str) -> N
 
     page.goto(f"{running_server}/login", wait_until="networkidle")
     page.get_by_label("Email").fill(email)
-    page.get_by_label("Password").fill(password)
+    page.get_by_role("textbox", name="Password", exact=True).fill(password)
     page.get_by_role("button", name="Sign in").click()
 
     assert page.get_by_role("heading", name="Signed in").is_visible()

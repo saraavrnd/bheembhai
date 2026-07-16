@@ -1,74 +1,130 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero-card container py-5">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-8">
-      <div class="auth-card">
-        <p class="eyebrow mb-2">Account creation</p>
-        <h1 class="display-4 fw-semibold mb-3">{{ heading }}</h1>
-        <p class="lead mb-4">{{ message }}</p>
+<section class="auth-hero auth-hero--signup">
+  <div class="auth-hero__accent auth-hero__accent--left"></div>
+  <div class="auth-hero__accent auth-hero__accent--right"></div>
+  <div class="container auth-shell">
+    <div class="auth-card auth-card--signup">
+      <div class="auth-card__header">
+        <h1 class="auth-title">{{ heading }}</h1>
+        {% if message %}
+          <p class="auth-intro">{{ message }}</p>
+        {% endif %}
+      </div>
 
-        {% if state == "success" %}
-          <div class="signup-success mb-4">
-            <p class="auth-meta mb-2">
-              We created your account for <strong>{{ email_value }}</strong>.
-            </p>
-            <p class="auth-meta mb-0">
-              Check your inbox and verify your email before you sign in.
-            </p>
+      {% if state == "success" %}
+        <div class="auth-callout auth-callout--success signup-success mb-4">
+          <p class="auth-callout__title mb-2">
+            We created your account for <strong>{{ email_value }}</strong>.
+          </p>
+          <p class="auth-callout__copy mb-0">
+            Check your inbox and verify your email before you sign in.
+          </p>
+        </div>
+        <div class="auth-actions">
+          <a class="btn btn-primary btn-primary--wide" href="{{ home_url }}">Go home</a>
+          <span class="status-pill status-pill--success">success</span>
+        </div>
+      {% else %}
+        {% if errors %}
+          <div class="signup-errors auth-callout auth-callout--error mb-4" role="alert" aria-live="polite">
+            <ul class="error-list">
+              {% for error in errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+            <span class="status-pill status-pill--error">error</span>
           </div>
-        {% else %}
-          {% if errors %}
-            <div class="signup-errors mb-4" role="alert" aria-live="polite">
-              <ul class="error-list">
-                {% for error in errors %}
-                  <li>{{ error }}</li>
-                {% endfor %}
-              </ul>
-            </div>
-          {% endif %}
+        {% endif %}
 
-          <form method="post" action="{{ post_url }}">
-            <div class="mb-3">
-              <label class="form-label" for="email">Email</label>
+        <form class="auth-form auth-form--signup" method="post" action="{{ post_url }}">
+          <div class="auth-field">
+            <label class="auth-field__label" for="email">Email address</label>
+            <div class="auth-input">
+              <span class="auth-input__icon" aria-hidden="true">✉</span>
               <input
-                class="form-control"
+                class="form-control auth-input__control"
                 id="email"
                 name="email"
                 type="email"
                 autocomplete="email"
+                placeholder="you@company.com"
                 required
                 value="{{ email_value | default('') }}"
               >
             </div>
-            <div class="mb-3">
-              <label class="form-label" for="password">Password</label>
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-field__label" for="password">Password</label>
+            <div class="auth-input">
+              <span class="auth-input__icon" aria-hidden="true">🔒</span>
               <input
-                class="form-control"
+                class="form-control auth-input__control auth-input__control--has-toggle"
                 id="password"
                 name="password"
                 type="password"
                 autocomplete="new-password"
+                placeholder="Create a strong password"
                 minlength="12"
                 required
               >
+              <button class="auth-input__toggle" type="button" aria-label="Show password">◔</button>
             </div>
-            <div class="d-flex flex-wrap gap-3 align-items-center">
-              <button class="btn btn-primary" type="submit">Create account</button>
-              <a class="btn btn-outline-secondary" href="{{ home_url }}">Go home</a>
-              <span class="status-pill status-pill--{{ state }}">{{ state }}</span>
-            </div>
-          </form>
-        {% endif %}
-
-        {% if state == "success" %}
-          <div class="d-flex flex-wrap gap-3 align-items-center">
-            <a class="btn btn-primary" href="{{ home_url }}">Go home</a>
-            <span class="status-pill status-pill--{{ state }}">{{ state }}</span>
+            <p class="auth-help">At least 8 characters with a mix of letters, numbers &amp; symbols.</p>
           </div>
-        {% endif %}
-      </div>
+
+          <div class="auth-field">
+            <label class="auth-field__label" for="confirm_password">Confirm password</label>
+            <div class="auth-input">
+              <span class="auth-input__icon" aria-hidden="true">🔒</span>
+              <input
+                class="form-control auth-input__control auth-input__control--has-toggle"
+                id="confirm_password"
+                name="confirm_password"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Confirm your password"
+                required
+              >
+              <button class="auth-input__toggle" type="button" aria-label="Show confirmation password">◔</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-primary--wide auth-submit" type="submit">Create account</button>
+
+          <div class="auth-divider" aria-hidden="true"><span>or</span></div>
+
+          <p class="auth-switch">
+            Already have an account? <a href="/login">Sign in</a>
+          </p>
+        </form>
+
+        <section class="auth-footer-grid" aria-label="Security highlights">
+          <article class="auth-footer-item">
+            <div class="auth-footer-item__icon">🛡</div>
+            <div>
+              <h2>Enterprise grade security</h2>
+              <p>SOC 2 Type II, GDPR ready</p>
+            </div>
+          </article>
+          <article class="auth-footer-item">
+            <div class="auth-footer-item__icon">🔒</div>
+            <div>
+              <h2>Data privacy by design</h2>
+              <p>Your data stays protected</p>
+            </div>
+          </article>
+          <article class="auth-footer-item">
+            <div class="auth-footer-item__icon">✓</div>
+            <div>
+              <h2>99.9% platform uptime</h2>
+              <p>Reliable. Always on.</p>
+            </div>
+          </article>
+        </section>
+      {% endif %}
     </div>
   </div>
 </section>

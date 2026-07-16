@@ -11,9 +11,9 @@ pytestmark = pytest.mark.e2e
 def test_signup_page_renders(page: Page, running_server: str) -> None:
     page.goto(f"{running_server}/signup", wait_until="networkidle")
 
-    assert page.get_by_role("heading", name="Sign up").is_visible()
+    assert page.get_by_role("heading", name="Create account").is_visible()
     assert page.get_by_label("Email").is_visible()
-    assert page.get_by_label("Password").is_visible()
+    assert page.get_by_role("textbox", name="Password", exact=True).is_visible()
     assert page.get_by_role("button", name="Create account").is_visible()
 
 
@@ -21,7 +21,8 @@ def test_signup_page_successfully_registers_a_new_user(page: Page, running_serve
     page.goto(f"{running_server}/signup", wait_until="networkidle")
 
     page.get_by_label("Email").fill(f"visitor-{uuid4().hex[:8]}@example.com")
-    page.get_by_label("Password").fill("SignupPassword123!")
+    page.get_by_role("textbox", name="Password", exact=True).fill("SignupPassword123!")
+    page.get_by_role("textbox", name="Confirm password", exact=True).fill("SignupPassword123!")
     page.get_by_role("button", name="Create account").click()
 
     assert page.get_by_role("heading", name="Check your email").is_visible()

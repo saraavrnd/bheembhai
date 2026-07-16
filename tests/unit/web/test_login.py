@@ -59,6 +59,9 @@ def test_login_page_renders_form(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert "Sign in" in response.text
+    assert "Verify your email before signing in" in response.text
+    assert "Forgot password?" in response.text
+    assert "Contact support" in response.text
     assert 'name="email"' in response.text
     assert 'name="password"' in response.text
     assert "Sign in" in response.text
@@ -101,7 +104,7 @@ def test_login_submit_shows_unverified_account_error(monkeypatch) -> None:
         )
 
     assert response.status_code == 200
-    assert "Verify your email" in response.text
+    assert "Verify your email before signing in" in response.text
     assert "status-pill--error" in response.text
 
 

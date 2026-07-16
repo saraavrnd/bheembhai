@@ -83,6 +83,12 @@ def test_verify_email_page_mentions_fragment_handshake(monkeypatch) -> None:
     assert response.status_code == 200
     assert "window.location.hash" in response.text
     assert "verify-form" in response.text
+    assert "Verification link flow" in response.text
+    assert "Email sent" in response.text
+    assert "Link clicked" in response.text
+    assert "Email verified" in response.text
+    assert "Verified" in response.text
+    assert "Resend email" in response.text
 
 
 def test_verify_email_submit_confirms_valid_token(monkeypatch) -> None:
@@ -137,6 +143,11 @@ def test_reset_password_page_mentions_fragment_handshake(monkeypatch) -> None:
     assert response.status_code == 200
     assert "window.location.hash" in response.text
     assert "new_password" in response.text
+    assert "Reset password" in response.text
+    assert "Token loaded" in response.text
+    assert "Password updated" in response.text
+    assert "Update password" in response.text
+    assert "Go home" in response.text
 
 
 def test_reset_password_submit_confirms_new_password(monkeypatch) -> None:
