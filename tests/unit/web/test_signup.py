@@ -68,7 +68,7 @@ def test_signup_page_renders_form(monkeypatch) -> None:
     assert 'name="email"' in response.text
     assert 'name="password"' in response.text
     assert 'name="confirm_password"' in response.text
-    assert "At least 8 characters with a mix of letters, numbers &amp; symbols." in response.text
+    assert "At least 6 characters with a mix of letters, numbers &amp; symbols." in response.text
     assert "Already have an account?" in response.text
     assert "Enterprise grade security" in response.text
     assert "Data privacy by design" in response.text
@@ -100,7 +100,7 @@ def test_signup_submit_shows_validation_errors(monkeypatch) -> None:
     assert response.status_code == 200
     assert service.register_calls == []
     assert "Enter a valid email address." in response.text
-    assert "Password must be at least 12 characters." in response.text
+    assert "Password must be at least 6 characters." in response.text
     assert "status-pill--error" in response.text
 
 

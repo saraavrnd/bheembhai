@@ -10,6 +10,9 @@ The authentication mockup story has been created in Jira and linked to epic `BEE
 The local story design and epic story map already use the same key, so no story-map
 rekeying was required.
 
+This merge also aligns the browser helper copy and validation with the 6-character password policy,
+without changing the underlying auth architecture or flow semantics.
+
 ## Source of truth
 
 - Jira issue: `BEEM-19`

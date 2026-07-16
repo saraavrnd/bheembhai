@@ -15,7 +15,7 @@ me_router = APIRouter(tags=["Auth"])
 
 class RegisterRequest(BaseModel):
     email: str = Field(min_length=3, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-    password: str = Field(min_length=12)
+    password: str = Field(min_length=6)
 
 
 class LoginRequest(BaseModel):
@@ -33,7 +33,7 @@ class PasswordResetRequest(BaseModel):
 
 class PasswordResetConfirmRequest(BaseModel):
     token: str = Field(min_length=1)
-    new_password: str = Field(alias="newPassword", min_length=12)
+    new_password: str = Field(alias="newPassword", min_length=6)
 
     model_config = ConfigDict(populate_by_name=True)
 

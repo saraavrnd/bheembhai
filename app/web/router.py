@@ -122,8 +122,8 @@ def _validate_signup_input(email: str, password: str) -> list[str]:
     errors: list[str] = []
     if not _EMAIL_PATTERN.match(email):
         errors.append("Enter a valid email address.")
-    if len(password) < 12:
-        errors.append("Password must be at least 12 characters.")
+    if len(password) < 6:
+        errors.append("Password must be at least 6 characters.")
     return errors
 
 
