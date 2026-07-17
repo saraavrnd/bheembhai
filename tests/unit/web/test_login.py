@@ -105,7 +105,7 @@ def test_login_submit_shows_unverified_account_error(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert "Verify your email before signing in" in response.text
-    assert "status-pill--error" in response.text
+    assert "alert-danger" in response.text
 
 
 def test_login_submit_shows_invalid_credentials_error(monkeypatch) -> None:
@@ -122,4 +122,4 @@ def test_login_submit_shows_invalid_credentials_error(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert "Incorrect email or password" in response.text
-    assert "status-pill--error" in response.text
+    assert "alert-danger" in response.text

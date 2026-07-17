@@ -101,7 +101,7 @@ def test_signup_submit_shows_validation_errors(monkeypatch) -> None:
     assert service.register_calls == []
     assert "Enter a valid email address." in response.text
     assert "Password must be at least 6 characters." in response.text
-    assert "status-pill--error" in response.text
+    assert "alert-danger" in response.text
 
 
 def test_signup_submit_shows_duplicate_email_error(monkeypatch) -> None:
@@ -130,4 +130,4 @@ def test_signup_submit_shows_duplicate_email_error(monkeypatch) -> None:
     assert response.status_code == 200
     assert service.register_calls == [("visitor@example.com", "SignupPassword123!")]
     assert "An account with that email already exists." in response.text
-    assert "status-pill--error" in response.text
+    assert "alert-danger" in response.text
