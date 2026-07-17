@@ -53,6 +53,10 @@ truth, per user decision.
   primitives from scratch. Non-auth rules in the file are untouched.
 - `app/web/templates/base.html` — add the Bootstrap stylesheet link ahead of `theme.css` so the
   override layer continues to win on cascade order.
+- `tests/e2e/__snapshots__/auth/` (new) — stored baseline screenshots (desktop + 390px per screen)
+  for the visual-regression layer described under Test surface.
+- `pyproject.toml` — add `Pillow` to the `dev` dependency group for baseline pixel-diffing (no
+  image-diff tooling exists in the repo today).
 
 ## Interfaces / endpoints
 | Kind | Signature | Request → Response |
@@ -95,8 +99,32 @@ existing copy, field order, states (verify-email warning, signup success, reset 
 success panels, verify-email flow steps), and the 390px no-horizontal-scroll requirement.
 
 ## Test surface
-- [x] Visual: each of the 4 screens matches its approved mockard at desktop width (headings, field
-      order, buttons, links, panels/footer all present and visible).
+
+Plain text/heading-visibility checks (BEEM-19's existing coverage) aren't enough to claim visual
+fidelity to a mockup — they can't tell a correctly-styled card from an unstyled `<div>`. This story
+adds two layers on top of that baseline, per user decision:
+
+- [x] **Computed-style assertions per mockup detail** — Playwright `page.evaluate` /
+      `expect(locator).to_have_css(...)` checks that key elements actually carry the intended
+      treatment, e.g.: card `border-radius` and `box-shadow` are non-default/non-zero; the primary
+      button's resolved `background-color` matches the `--bb-primary` token; the sign-in
+      verify-email callout has the warning/amber treatment; the reset-password token-loaded and
+      success panels have their distinct blue/green treatments; the decorative background element
+      is present with a non-`none` `background-image`/gradient; real Bootstrap is confirmed loaded
+      (e.g. a `.container` resolves Bootstrap's computed `max-width`, not an unset/auto value).
+- [x] **Playwright screenshot-baseline regression** — after implementation, capture a full-page
+      screenshot per screen (desktop 1440px + mobile 390px) to `tests/e2e/__snapshots__/auth/`
+      once you've visually confirmed the render matches the approved mockup. Add a test that
+      re-screenshots on every run and asserts the pixel-difference ratio against the stored
+      baseline stays under a small tolerance (e.g. <2%, using `Pillow` for the diff — new dev
+      dependency, no image-diff tooling exists in the repo today). This doesn't validate day-one
+      accuracy — your visual sign-off does — it catches silent drift afterward. This is NOT a diff
+      against the mockup PNGs themselves: those are AI-generated design references, not browser
+      renders, so font metrics/AA/DPI differ enough that a literal mockup-diff would false-fail a
+      correct implementation. The mockups stay the human-reviewed source of truth; the baseline
+      locks in whatever render you sign off as matching them.
+- [x] Visual: each of the 4 screens matches its approved mockup at desktop width (headings, field
+      order, buttons, links, panels/footer all present and visible) — existing coverage, kept.
 - [x] Visual: the four screens share the same Bootstrap-based light theme, accent color, and card
       treatment.
 - [x] Functional: reset-password token-loaded panel and post-update success panel both render at
