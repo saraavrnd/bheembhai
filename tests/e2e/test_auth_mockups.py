@@ -91,6 +91,6 @@ def test_reset_password_page_shows_confirm_password_field_with_token(
     page.goto(f"{running_server}/reset-password#token=fake-token", wait_until="networkidle")
 
     assert page.locator("#reset-token-alert").is_hidden()
-    assert page.get_by_label("New password").is_visible()
+    assert page.get_by_label("New password", exact=True).is_visible()
     assert page.get_by_label("Confirm new password").is_visible()
     assert page.get_by_role("button", name="Update password").is_visible()

@@ -7,6 +7,12 @@ pytestmark = pytest.mark.e2e
 
 AUTH_PATHS = ["/signup", "/login", "/forgot-password", "/reset-password", "/verify-email"]
 
+# /verify-email's pending state (no token in the URL) intentionally renders no primary-action
+# button -- it's a silent auto-verify page with only a hidden form / missing-token alert, by
+# design (BEEM-20 item 18 removed the "Resend email" button). Exclude it from the
+# primary-button-color check, which needs a visible .btn-primary to sample.
+AUTH_PATHS_WITH_PRIMARY_BUTTON = [path for path in AUTH_PATHS if path != "/verify-email"]
+
 
 def _resolve_css_custom_property_as_color(page: Page, property_name: str) -> str:
     return page.evaluate(
@@ -50,7 +56,7 @@ def test_auth_pages_load_real_bootstrap_container_breakpoints(
     )
 
 
-@pytest.mark.parametrize("path", AUTH_PATHS)
+@pytest.mark.parametrize("path", AUTH_PATHS_WITH_PRIMARY_BUTTON)
 def test_auth_primary_button_color_matches_bb_primary_token(
     page: Page, running_server: str, path: str
 ) -> None:
