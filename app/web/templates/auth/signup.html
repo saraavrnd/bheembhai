@@ -1,10 +1,13 @@
-{% extends "base.html" %}
+{% extends "layouts/auth.html" %}
 
-{% block content %}
-<section class="auth-hero auth-hero--signup">
+{% block hero_modifier %}auth-hero--signup{% endblock %}
+
+{% block hero_accents %}
   <div class="auth-hero__accent auth-hero__accent--left"></div>
   <div class="auth-hero__accent auth-hero__accent--right"></div>
-  <div class="container auth-shell">
+{% endblock %}
+
+{% block auth_body %}
     <div class="auth-card auth-card--signup">
       <div class="auth-card__header">
         <h1 class="auth-title">{{ heading }}</h1>
@@ -14,27 +17,25 @@
       </div>
 
       {% if state == "success" %}
-        <div class="auth-callout auth-callout--success signup-success mb-4">
-          <p class="auth-callout__title mb-2">
+        <div class="alert alert-success signup-success mb-4">
+          <p class="fw-bold mb-2">
             We created your account for <strong>{{ email_value }}</strong>.
           </p>
-          <p class="auth-callout__copy mb-0">
+          <p class="mb-0">
             Check your inbox and verify your email before you sign in.
           </p>
         </div>
         <div class="auth-actions">
           <a class="btn btn-primary btn-primary--wide" href="{{ home_url }}">Go home</a>
-          <span class="status-pill status-pill--success">success</span>
         </div>
       {% else %}
         {% if errors %}
-          <div class="signup-errors auth-callout auth-callout--error mb-4" role="alert" aria-live="polite">
-            <ul class="error-list">
+          <div class="signup-errors alert alert-danger mb-4" role="alert" aria-live="polite">
+            <ul class="error-list mb-0">
               {% for error in errors %}
                 <li>{{ error }}</li>
               {% endfor %}
             </ul>
-            <span class="status-pill status-pill--error">error</span>
           </div>
         {% endif %}
 
@@ -42,7 +43,9 @@
           <div class="auth-field">
             <label class="auth-field__label" for="email">Email address</label>
             <div class="auth-input">
-              <span class="auth-input__icon" aria-hidden="true">✉</span>
+              <span class="auth-input__icon" aria-hidden="true">
+                <svg width="16" height="16" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#mail"></use></svg>
+              </span>
               <input
                 class="form-control auth-input__control"
                 id="email"
@@ -59,7 +62,9 @@
           <div class="auth-field">
             <label class="auth-field__label" for="password">Password</label>
             <div class="auth-input">
-              <span class="auth-input__icon" aria-hidden="true">🔒</span>
+              <span class="auth-input__icon" aria-hidden="true">
+                <svg width="16" height="16" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#lock"></use></svg>
+              </span>
               <input
                 class="form-control auth-input__control auth-input__control--has-toggle"
                 id="password"
@@ -70,7 +75,9 @@
                 minlength="6"
                 required
               >
-              <button class="auth-input__toggle" type="button" aria-label="Show password">◔</button>
+              <button class="auth-input__toggle" type="button" aria-label="Show password">
+                <svg width="16" height="16" aria-hidden="true" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#eye"></use></svg>
+              </button>
             </div>
             <p class="auth-help">At least 6 characters with a mix of letters, numbers &amp; symbols.</p>
           </div>
@@ -78,7 +85,9 @@
           <div class="auth-field">
             <label class="auth-field__label" for="confirm_password">Confirm password</label>
             <div class="auth-input">
-              <span class="auth-input__icon" aria-hidden="true">🔒</span>
+              <span class="auth-input__icon" aria-hidden="true">
+                <svg width="16" height="16" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#lock"></use></svg>
+              </span>
               <input
                 class="form-control auth-input__control auth-input__control--has-toggle"
                 id="confirm_password"
@@ -88,7 +97,9 @@
                 placeholder="Confirm your password"
                 required
               >
-              <button class="auth-input__toggle" type="button" aria-label="Show confirmation password">◔</button>
+              <button class="auth-input__toggle" type="button" aria-label="Show confirmation password">
+                <svg width="16" height="16" aria-hidden="true" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#eye"></use></svg>
+              </button>
             </div>
           </div>
 
@@ -103,21 +114,27 @@
 
         <section class="auth-footer-grid" aria-label="Security highlights">
           <article class="auth-footer-item">
-            <div class="auth-footer-item__icon">🛡</div>
+            <div class="auth-footer-item__icon">
+              <svg width="18" height="18" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#shield"></use></svg>
+            </div>
             <div>
               <h2>Enterprise grade security</h2>
               <p>SOC 2 Type II, GDPR ready</p>
             </div>
           </article>
           <article class="auth-footer-item">
-            <div class="auth-footer-item__icon">🔒</div>
+            <div class="auth-footer-item__icon">
+              <svg width="18" height="18" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#lock"></use></svg>
+            </div>
             <div>
               <h2>Data privacy by design</h2>
               <p>Your data stays protected</p>
             </div>
           </article>
           <article class="auth-footer-item">
-            <div class="auth-footer-item__icon">✓</div>
+            <div class="auth-footer-item__icon">
+              <svg width="18" height="18" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#check"></use></svg>
+            </div>
             <div>
               <h2>99.9% platform uptime</h2>
               <p>Reliable. Always on.</p>
@@ -126,6 +143,4 @@
         </section>
       {% endif %}
     </div>
-  </div>
-</section>
 {% endblock %}
