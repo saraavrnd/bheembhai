@@ -57,8 +57,9 @@ def test_auth_screen_matches_approved_visual_baseline(
 ) -> None:
     baseline_file = _baseline_path(screen, viewport_name)
     if not baseline_file.exists():
+        relative_baseline = baseline_file.relative_to(Path(__file__).parent.parent.parent)
         pytest.fail(
-            f"No approved visual baseline at {baseline_file.relative_to(Path(__file__).parent.parent.parent)} yet. "
+            f"No approved visual baseline at {relative_baseline} yet. "
             "This is expected until `implement` renders the rebuilt screen, a human visually "
             "confirms it matches the approved mockup, and the baseline screenshot is captured "
             "(see story-design.md's screenshot-baseline workflow). Do not fabricate a baseline "

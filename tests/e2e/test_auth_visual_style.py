@@ -78,7 +78,9 @@ def test_login_password_toggle_uses_feather_icon_sprite(page: Page, running_serv
     <svg><use> reference instead."""
     page.goto(f"{running_server}/login", wait_until="networkidle")
 
-    toggle_icon = page.locator("button[aria-label='Show password'] svg use[href*='feather-sprite.svg']")
+    toggle_icon = page.locator(
+        "button[aria-label='Show password'] svg use[href*='feather-sprite.svg']"
+    )
     assert toggle_icon.count() > 0, (
         "password-visibility toggle does not reference the feather-icons sprite"
     )
