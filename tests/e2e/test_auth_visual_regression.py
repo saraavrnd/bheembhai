@@ -9,7 +9,7 @@ pytestmark = pytest.mark.e2e
 
 SNAPSHOT_DIR = Path(__file__).parent / "__snapshots__" / "auth"
 
-SCREENS = ["signup", "login", "reset-password", "verify-email"]
+SCREENS = ["signup", "login", "forgot-password", "reset-password", "verify-email"]
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
     "mobile": {"width": 390, "height": 844},

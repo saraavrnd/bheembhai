@@ -5,7 +5,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.e2e
 
-AUTH_PATHS = ["/signup", "/login", "/reset-password", "/verify-email"]
+AUTH_PATHS = ["/signup", "/login", "/forgot-password", "/reset-password", "/verify-email"]
 
 
 def _resolve_css_custom_property_as_color(page: Page, property_name: str) -> str:

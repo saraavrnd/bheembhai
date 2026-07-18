@@ -1,6 +1,6 @@
 services:
   api:
     environment:
-      BEEBHAI_ENVIRONMENT: test
-      BEEBHAI_PUBLIC_BASE_URL: ${BEEBHAI_PUBLIC_BASE_URL}
-      BEEBHAI_SECRET_KEY: test-secret-key
+      BHEEMBHAI_ENVIRONMENT: test
+      BHEEMBHAI_PUBLIC_BASE_URL: ${BHEEMBHAI_PUBLIC_BASE_URL}
+      BHEEMBHAI_SECRET_KEY: test-secret-key

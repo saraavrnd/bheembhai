@@ -10,7 +10,7 @@ from app.core.settings import get_settings
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="beembhai-admin", description="BeemBhai admin handler")
+    parser = argparse.ArgumentParser(prog="beembhai-admin", description="BheemBhai admin handler")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     bootstrap_parser = subparsers.add_parser(

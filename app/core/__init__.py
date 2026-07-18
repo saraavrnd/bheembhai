@@ -1,1 +1,1 @@
-"""Core application infrastructure for BeemBhai."""
+"""Core application infrastructure for BheemBhai."""

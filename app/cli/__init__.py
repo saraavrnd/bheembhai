@@ -1,1 +1,1 @@
-"""Command-line entrypoints for BeemBhai."""
+"""Command-line entrypoints for BheemBhai."""

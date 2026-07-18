@@ -31,7 +31,7 @@ def _build_test_app(monkeypatch, auth_service: FakeLoginService):
         app_main,
         "get_settings",
         lambda: SimpleNamespace(
-            app_name="BeemBhai",
+            app_name="BheemBhai",
             version="0.1.0",
             api_version="v1",
             database_url="sqlite+pysqlite://",
@@ -59,12 +59,15 @@ def test_login_page_renders_form(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert "Sign in" in response.text
-    assert "Verify your email before signing in" in response.text
-    assert "Forgot password?" in response.text
-    assert "Contact support" in response.text
+    assert "Sign in to BheemBhai" in response.text
+    assert "Verify your email before signing in" not in response.text
+    assert "Contact support" not in response.text
+    assert 'href="/forgot-password"' in response.text
+    assert 'href="/signup"' in response.text
+    assert "Don&#39;t have an account?" in response.text
+    assert 'class="auth-input__icon"' in response.text
     assert 'name="email"' in response.text
     assert 'name="password"' in response.text
-    assert "Sign in" in response.text
 
 
 def test_login_submit_sets_session_cookie_and_success_state(monkeypatch) -> None:
@@ -106,6 +109,9 @@ def test_login_submit_shows_unverified_account_error(monkeypatch) -> None:
     assert response.status_code == 200
     assert "Verify your email before signing in" in response.text
     assert "alert-danger" in response.text
+    assert "<h1" in response.text
+    assert "Sign in failed" not in response.text
+    assert response.text.count("Verify your email before signing in") == 1
 
 
 def test_login_submit_shows_invalid_credentials_error(monkeypatch) -> None:
@@ -123,3 +129,5 @@ def test_login_submit_shows_invalid_credentials_error(monkeypatch) -> None:
     assert response.status_code == 200
     assert "Incorrect email or password" in response.text
     assert "alert-danger" in response.text
+    assert "Sign in failed" not in response.text
+    assert response.text.count("Incorrect email or password") == 1

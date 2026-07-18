@@ -1,4 +1,4 @@
-# BeemBhai
+# BheemBhai
 
 BheemBhai is a governed workflow orchestration platform for reusable agent skills across the
 software delivery lifecycle.
@@ -74,6 +74,8 @@ uv run pytest
 - Keep feature work inside the existing `app/<module>/` homes.
 - Write failing tests first, then implement the smallest change that makes them pass.
 - Follow the repo layout in `AGENTS.md` for all docs and artifact paths.
+- Claude Code can load the repo skills from `.claude/skills`, which is a symlink to `.agents/skills`.
+- `AGENTS.md` is the repo-specific instruction file for Codex and other repo-aware agents.
 
 ## Branching and PRs
 

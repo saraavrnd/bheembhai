@@ -7,9 +7,10 @@ pytestmark = pytest.mark.e2e
 
 SCREENS = [
     ("/signup", "Create account", "Already have an account?"),
-    ("/login", "Sign in", "Verify your email before signing in"),
-    ("/verify-email", "Verify your email", "Verification link flow"),
-    ("/reset-password", "Reset password", "Token loaded"),
+    ("/login", "Sign in", "Sign in to BheemBhai"),
+    ("/forgot-password", "Forgot password", "Enter your account email"),
+    ("/verify-email", "Verify your email", "We're verifying your email address"),
+    ("/reset-password", "Reset password", "Choose a new password"),
 ]
 
 
@@ -40,40 +41,56 @@ def test_auth_mockup_pages_stay_within_mobile_viewport(
     _assert_no_horizontal_scroll(page)
 
 
-def test_signup_page_shows_trust_footer(page: Page, running_server: str) -> None:
+def test_signup_page_hides_trust_footer(page: Page, running_server: str) -> None:
     page.set_viewport_size({"width": 1440, "height": 1400})
     page.goto(f"{running_server}/signup", wait_until="networkidle")
 
-    assert page.get_by_text("Enterprise grade security").is_visible()
-    assert page.get_by_text("Data privacy by design").is_visible()
-    assert page.get_by_text("99.9% platform uptime").is_visible()
+    assert page.get_by_text("Enterprise grade security").count() == 0
+    assert page.get_by_text("Data privacy by design").count() == 0
+    assert page.get_by_text("99.9% platform uptime").count() == 0
 
 
-def test_login_page_shows_support_and_recovery_links(page: Page, running_server: str) -> None:
+def test_login_page_shows_recovery_and_signup_links_not_contact_support(
+    page: Page, running_server: str
+) -> None:
     page.set_viewport_size({"width": 1440, "height": 1400})
     page.goto(f"{running_server}/login", wait_until="networkidle")
 
     assert page.get_by_role("link", name="Forgot password?").is_visible()
-    assert page.get_by_role("link", name="Contact support").is_visible()
+    assert page.get_by_role("link", name="Sign up").is_visible()
+    assert page.get_by_role("link", name="Contact support").count() == 0
 
 
-def test_verify_email_page_shows_primary_and_secondary_actions(
+def test_verify_email_page_shows_missing_token_alert_without_fragment(
     page: Page, running_server: str
 ) -> None:
     page.set_viewport_size({"width": 1440, "height": 1400})
     page.goto(f"{running_server}/verify-email", wait_until="networkidle")
 
-    assert page.get_by_role("link", name="Go home").is_visible()
-    assert page.get_by_role("button", name="Resend email").is_visible()
+    assert page.locator("#verify-token-alert").is_visible()
+    assert page.get_by_role("link", name="Go home").count() == 0
+    assert page.get_by_role("button", name="Resend email").count() == 0
 
 
-def test_reset_password_page_shows_both_status_panels_together(
+def test_reset_password_page_shows_missing_token_alert_without_fragment(
     page: Page, running_server: str
 ) -> None:
     page.set_viewport_size({"width": 1440, "height": 1400})
     page.goto(f"{running_server}/reset-password", wait_until="networkidle")
 
+    assert page.locator("#reset-token-alert").is_visible()
+    assert page.get_by_role("link", name="Go home").count() == 0
+    assert page.get_by_text("Token loaded").count() == 0
+    assert page.get_by_text("Password updated").count() == 0
+
+
+def test_reset_password_page_shows_confirm_password_field_with_token(
+    page: Page, running_server: str
+) -> None:
+    page.set_viewport_size({"width": 1440, "height": 1400})
+    page.goto(f"{running_server}/reset-password#token=fake-token", wait_until="networkidle")
+
+    assert page.locator("#reset-token-alert").is_hidden()
+    assert page.get_by_label("New password").is_visible()
+    assert page.get_by_label("Confirm new password").is_visible()
     assert page.get_by_role("button", name="Update password").is_visible()
-    assert page.get_by_role("link", name="Go home").is_visible()
-    assert page.get_by_text("Token loaded").is_visible()
-    assert page.get_by_text("Password updated").is_visible()

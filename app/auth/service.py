@@ -226,7 +226,7 @@ class AuthService:
         self.email_sender.send(
             EmailMessage(
                 to_email=user.email,
-                subject="Verify your BeemBhai account",
+                subject="Verify your BheemBhai account",
                 html_content=(
                     f"<p>Hello,</p><p>Please verify your account:</p>"
                     f'<p><a href="{verify_url}">{verify_url}</a></p>'
@@ -242,7 +242,7 @@ class AuthService:
         self.email_sender.send(
             EmailMessage(
                 to_email=user.email,
-                subject="Reset your BeemBhai password",
+                subject="Reset your BheemBhai password",
                 html_content=(
                     f"<p>Hello,</p><p>You can reset your password here:</p>"
                     f'<p><a href="{reset_url}">{reset_url}</a></p>'

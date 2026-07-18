@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "beembhai"
 version = "0.1.0"
-description = "BeemBhai governed workflow orchestration platform"
+description = "BheemBhai governed workflow orchestration platform"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [

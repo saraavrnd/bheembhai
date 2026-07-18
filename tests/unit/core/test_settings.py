@@ -6,7 +6,7 @@ def test_default_settings_use_repo_name() -> None:
 
     settings = get_settings()
 
-    assert settings.app_name == "BeemBhai"
+    assert settings.app_name == "BheemBhai"
     assert settings.version == "0.1.0"
     assert settings.database_url.startswith("sqlite+pysqlite://")
 

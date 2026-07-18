@@ -1,4 +1,4 @@
-# BeemBhai — Phased Build Plan (Platform Product)
+# BheemBhai — Phased Build Plan (Platform Product)
 
 From proven spike → shippable product, sequenced for a **solo, nights-and-weekends** builder. The
 governing rule: each phase must be *usable on its own* and leave you with working software, so

@@ -1,8 +1,8 @@
-# BeemBhai — A Whitepaper
+# BheemBhai — A Whitepaper
 
 ### An Agentic Platform for Holistic Product Success
 
-*Working name: BeemBhai. Version 1.0 — architecture-grounded product vision.*
+*Working name: BheemBhai. Version 1.0 — architecture-grounded product vision.*
 
 ---
 
@@ -14,7 +14,7 @@ invisible costs, and decisions made without the data to back them. AI coding age
 Codex, and open-source equivalents) have made *writing software* dramatically faster, but they have
 done little for the **whole lifecycle** that determines whether a product actually succeeds.
 
-**BeemBhai is an agentic platform that orchestrates the entire product development lifecycle** — not
+**BheemBhai is an agentic platform that orchestrates the entire product development lifecycle** — not
 just engineering, but the full set of dimensions that decide a product's fate: Product, Engineering,
 QA, DevOps, Program & Release Management, Marketing, Sales, Customer Support, Finance, Revenue
 Operations, KPI tracking, executive decision-making, and ROI measurement.
@@ -45,7 +45,7 @@ money. Speeding up only the "builds it" link leaves the rest of the chain as slo
 error-prone as before — and often makes the bottlenecks *downstream* worse, because more code
 arrives faster at teams that weren't sped up.
 
-### 1.2 The opportunity BeemBhai addresses
+### 1.2 The opportunity BheemBhai addresses
 
 The same agentic capability that accelerates coding can, if properly *orchestrated and governed*,
 be applied to every link in the chain. The barrier has never been the model — it is the absence of
@@ -57,7 +57,7 @@ a **platform** that can:
 - **observe and cost** them (know what happened and what it cost);
 - and remain **agnostic** to which model or which agent runtime is underneath.
 
-BeemBhai is that platform. It begins where agentic capability is already proven — the software
+BheemBhai is that platform. It begins where agentic capability is already proven — the software
 delivery lifecycle — and extends outward to the holistic set of product dimensions.
 
 ### 1.3 Who this is for
@@ -114,13 +114,13 @@ Each gap alone is non-trivial; together they compound. Governance without orches
 toothless; orchestration without reliable remote execution is a demo; reliable execution without
 observability and cost control is unaffordable at scale; and all of it is worthless if it can't
 survive the reality that **a container running an agent can die at any moment and cannot report its
-own death.** BeemBhai's architecture is designed precisely around these compounding constraints.
+own death.** BheemBhai's architecture is designed precisely around these compounding constraints.
 
 ---
 
 ## 3. Solution Approach
 
-BeemBhai's solution rests on a small number of decisions that, taken together, resolve the gaps
+BheemBhai's solution rests on a small number of decisions that, taken together, resolve the gaps
 above. Each is grounded in the design work already completed.
 
 ### 3.1 Skills as the unit of work
@@ -141,7 +141,7 @@ provider-independence possible.
 
 ### 3.3 Governed execution via three separate overlays
 
-BeemBhai deliberately separates three concerns that naive systems merge:
+BheemBhai deliberately separates three concerns that naive systems merge:
 
 - **Workflow** — *what runs, in what order, and where control goes on each outcome.* A declarative
   state machine the backend interprets.
@@ -173,7 +173,7 @@ and routing each to the right response (retry the transient, escalate the determ
 
 ### 3.6 Vendor independence by design
 
-Three abstraction seams keep BeemBhai from being locked in: an **Agent Runner interface** (Claude
+Three abstraction seams keep BheemBhai from being locked in: an **Agent Runner interface** (Claude
 Code / Codex / OpenCode behind one contract), a **LiteLLM proxy** as the single, mandatory choke-point
 for all model calls (provider-agnostic, and the natural place to meter cost), and a **Runtime
 interface** for launching containers (local Docker now, remote or serverless-containers later without
@@ -204,7 +204,7 @@ observability, the same machinery extends beyond engineering:
 The crucial honesty here: engineering skills produce **checkable artifacts** (tests pass or fail);
 many downstream dimensions are **advisory or data-dependent** (an agent drafts a go-to-market plan or
 synthesizes ROI from integrated financial data, but humans and real systems remain the source of
-truth). BeemBhai's governance and integration model is built to accommodate exactly this spectrum —
+truth). BheemBhai's governance and integration model is built to accommodate exactly this spectrum —
 from fully automated, verifiable engineering steps to human-gated, data-grounded business steps.
 
 ---
@@ -213,7 +213,7 @@ from fully automated, verifiable engineering steps to human-gated, data-grounded
 
 ### 4.1 System overview
 
-At the highest level, a **Web UI** talks to the **BeemBhai API**, which persists to a **database**
+At the highest level, a **Web UI** talks to the **BheemBhai API**, which persists to a **database**
 and delegates execution through an **AgentController** to **CodeAgent containers** (Claude / Codex /
 OpenCode / others). All model calls route through **LiteLLM**; all execution is traced in
 **Langfuse**; credentials live in **secure storage**; source and artifacts live in **Git**; and
@@ -308,7 +308,7 @@ foundational.
 
 ## 6. Development Plan — Phased Approach & Deliverables
 
-BeemBhai is built in deliberate phases, each shippable and usable on its own. The engine's hardest
+BheemBhai is built in deliberate phases, each shippable and usable on its own. The engine's hardest
 problem (backend-owned orchestration with suspend/resume across ephemeral containers) is already
 **spike-proven**.
 
@@ -373,7 +373,7 @@ the same platform, wired to the real systems that hold each dimension's ground t
 
 ## 8. Conclusion
 
-The productivity story of AI agents has, so far, been a story about *coding*. BeemBhai's premise is
+The productivity story of AI agents has, so far, been a story about *coding*. BheemBhai's premise is
 that this is a fraction of the opportunity. A product succeeds or fails across many dimensions, and
 the same agentic capability — properly **orchestrated, governed, observed, and made vendor-neutral** —
 can be applied to all of them.
@@ -381,7 +381,7 @@ can be applied to all of them.
 The platform's foundation is not speculative: the hard engineering problems — backend-owned
 orchestration, ephemeral isolated execution, crash-safe result reconciliation, suspend/resume across
 human checkpoints, and provider independence — are designed in detail and proven in spike. On that
-foundation, BeemBhai delivers first a governed, team-scale **software delivery** platform, and then
+foundation, BheemBhai delivers first a governed, team-scale **software delivery** platform, and then
 extends outward to the **holistic set of product dimensions** that actually determine success.
 
 The result is a single system where an idea becomes a governed, measurable, end-to-end journey — from

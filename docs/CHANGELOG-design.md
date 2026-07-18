@@ -2,7 +2,7 @@
 
 ## 2026-07-10
 
-- Approved the initial BeemBhai architecture and stack.
+- Approved the initial BheemBhai architecture and stack.
 - Added the server-rendered UI, modular monolith process boundaries, and plugin-based integrations.
 - Added architecture diagrams to the committed design.
 - Scaffolded the repository skeleton for the walking-skeleton phase.

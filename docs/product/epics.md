@@ -1,4 +1,4 @@
-# BeemBhai Epics
+# BheemBhai Epics
 
 Decomposed from [PRD.md](docs/product/PRD.md) for Jira project `BHEEM`.
 

@@ -74,7 +74,7 @@
                 <svg width="16" height="16" aria-hidden="true" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#eye"></use></svg>
               </button>
             </div>
-            <p class="auth-help">At least 6 characters with a mix of letters, numbers &amp; symbols.</p>
+            <p class="auth-help">At least 6 characters.</p>
           </div>
 
           <div class="auth-field">
@@ -106,36 +106,6 @@
             Already have an account? <a href="/login">Sign in</a>
           </p>
         </form>
-
-        <section class="auth-footer-grid" aria-label="Security highlights">
-          <article class="auth-footer-item">
-            <div class="auth-footer-item__icon">
-              <svg width="18" height="18" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#shield"></use></svg>
-            </div>
-            <div>
-              <h2>Enterprise grade security</h2>
-              <p>SOC 2 Type II, GDPR ready</p>
-            </div>
-          </article>
-          <article class="auth-footer-item">
-            <div class="auth-footer-item__icon">
-              <svg width="18" height="18" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#lock"></use></svg>
-            </div>
-            <div>
-              <h2>Data privacy by design</h2>
-              <p>Your data stays protected</p>
-            </div>
-          </article>
-          <article class="auth-footer-item">
-            <div class="auth-footer-item__icon">
-              <svg width="18" height="18" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#check"></use></svg>
-            </div>
-            <div>
-              <h2>99.9% platform uptime</h2>
-              <p>Reliable. Always on.</p>
-            </div>
-          </article>
-        </section>
       {% endif %}
     </div>
 {% endblock %}
