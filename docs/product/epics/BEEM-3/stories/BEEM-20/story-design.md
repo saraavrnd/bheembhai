@@ -154,3 +154,99 @@ executes that decision for the auth surface only. No ADR needed.
 ---
 *On approval: next step is `test-creator` (failing tests from these screens and their acceptance
 criteria), then `implement`.*
+
+## Addendum — PR #7 review feedback (2026-07-18)
+
+**Status:** APPROVED (user reviewed the deployed screens on PR #7 and gave 18 concrete change
+requests, with 3 ambiguous points resolved via follow-up questions before this addendum was
+written). This addendum amends acceptance criteria in place; it does not restart the story.
+
+### Resolved ambiguities
+- **Password policy:** the signup/reset-password help text claims a 6-char +
+  upper/lower/number/symbol policy, but only `len(password) >= 6` is enforced anywhere in code.
+  Decision: correct the copy to state the real policy ("At least 6 characters."). Do not add new
+  complexity validation.
+- **Reset-password "Go home" link:** remove it, and remove the caption below the submit button
+  ("Open the link from your email...").
+- **Env var typo:** `BEEBHAI_APP_NAME` (missing an "M") is one of a family of `BEEBHAI_*` env
+  vars sharing the same typo. Decision: rename the whole family to `BHEEMBHAI_*` for consistency
+  (no deployed environments depend on the old names yet).
+
+### New acceptance detail (supersedes/extends the sections above)
+
+**Branding:** every user-facing and code-facing occurrence of `"BeemBhai"` becomes `"BheemBhai"`
+(app name default, email sender name, email subject lines, signup/login/reset intro copy, CLI
+prog/description, package docstrings, env var family). Infra-only identifiers that aren't display
+branding (`minio_access_key`/`minio_secret_key`, the sqlite filename) are explicitly out of scope.
+
+**Login (`GET/POST /login`):**
+- Always show a BheemBhai intro blurb under the "Sign in" heading (parity with signup's "Join
+  BheemBhai..." blurb) — not just on the pending state.
+- Add a "Don't have an account? Sign up" link to `/signup` (parity with signup's reverse link).
+- Remove the "Having trouble signing in? Contact support" row entirely.
+- The "Verify your email before signing in" notice must NOT render on a plain page load — only
+  as the actual error content when a submitted login fails because the account is unverified.
+- Email and password fields get the same `.auth-input`/icon-wrapper treatment `signup.html`
+  already uses (mail icon, lock icon) — today's gap causes a visible left-padding mismatch.
+- "Forgot password?" links to the new `/forgot-password` page (see below), not directly to
+  `/reset-password`.
+- On a failed sign-in (bad credentials or unverified email), the heading stays "Sign in" (never
+  "Sign in failed" / "Verify your email"), and no separate message paragraph duplicates the error
+  — only the single errors alert box renders the failure text.
+
+**Forgot password (new `GET/POST /forgot-password`):** a new browser page — email-only form,
+reusing `AuthService.request_password_reset` (already exists, `app/auth/service.py:201`) via the
+real-email-sender service instance (`_auth_service`, not `_browser_auth_service`, which is built
+with `email_sender=None`). Always shows the same non-enumerating "check your email" success
+message regardless of whether the account exists/is verified, matching the method's existing
+silent-`False` design. Errors during send are caught and shown as a friendly in-page message.
+
+**Reset password (`GET/POST /reset-password`):**
+- Remove the "Token loaded" / "Password updated" static aside panels and the split-shell layout
+  entirely — collapse to the same single-column card the other 3 screens use.
+- Add a `confirm_password` field; server-side validation rejects a mismatch with "Passwords do
+  not match." before calling `confirm_password_reset`.
+- Remove the "Go home" link and the "Open the link from your email..." caption (per the resolved
+  ambiguity above).
+- The token arrives via the URL fragment (`#token=...`), invisible server-side. Client-side JS
+  must show a visible `alert alert-danger` failure message and hide the form when no token is
+  present in the fragment — replacing today's soft hint-text-only behavior.
+- Correct the password help text to state the real policy (6 characters only).
+- Add a BheemBhai-branded intro line under the heading, parity with signup/login.
+
+**Verify email (`GET/POST /verify-email`):**
+- Remove the "Verification link flow" 3-step section and the "Resend email" button entirely.
+- The "Verified" status chip and checkmark ring must only render once verification has actually
+  succeeded (`state == "success"`) — today they render unconditionally, which is misleading
+  before the token is confirmed (same bug class as the login default-warning issue above).
+- Client-side JS must show a visible `alert alert-danger` failure message and hide the auto-submit
+  form when no token is present in the URL fragment — replacing today's soft hint-text-only
+  behavior. Auto-verification itself (extract token from fragment, auto-submit) already works and
+  is unchanged.
+- On successful verification, replace "Go home" with a "Continue to sign in" link to `/login`.
+
+**Signup (`GET/POST /signup`):**
+- Remove the "Enterprise grade security / Data privacy by design / 99.9% platform uptime"
+  trust-footer section entirely.
+- Correct the password help text to state the real policy (6 characters only).
+- Wrap the `register_user(...)` call in `signup_submit()` in try/except; a send failure (e.g. a
+  live email-provider error) must render the signup form with a friendly in-page error, never
+  FastAPI's default 500 page.
+
+### Test surface additions
+All of the above are template/behavior changes on already-covered screens plus one new page
+(`/forgot-password`) — extend the existing unit test files per screen (`test_login.py`,
+`test_signup.py`, `test_verify_email.py`, reset-password coverage) and `test_auth_mockups.py`'s
+parametrized e2e checks; add `test_forgot_password.py`. The visual-regression baselines under
+`tests/e2e/__snapshots__/auth/` will need re-capture after implementation (layout changes on all
+4 existing screens, plus new baselines for `/forgot-password`) — same capture-after-visual-signoff
+flow as the original story run.
+
+### Out of scope (unchanged)
+Real password-complexity enforcement (copy-only fix, see resolved ambiguities). Infra credential
+identifiers (`minio_*`, sqlite filename). Anything not named above stays as BEEM-20 originally
+shipped it.
+
+---
+*On approval: next step is `test-creator` (extend the existing test files for the changed/added
+screens), then `implement`.*
