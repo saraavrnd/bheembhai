@@ -792,17 +792,6 @@ body {
   font-weight: 700;
 }
 
-.auth-chip--verified::before {
-  content: "✓";
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(21, 128, 61, 0.14);
-}
-
 .auth-verify-mark {
   display: flex;
   justify-content: center;
