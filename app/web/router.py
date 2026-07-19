@@ -456,6 +456,12 @@ async def reset_password_submit(request: Request) -> HTMLResponse:
     )
 
 
+_SIGNUP_INTRO = (
+    "Join BheemBhai, the governed agent-orchestration platform built for secure, "
+    "scalable automation."
+)
+
+
 @router.get("/signup", response_class=HTMLResponse, include_in_schema=False)
 def signup(request: Request) -> HTMLResponse:
     settings = get_settings()
@@ -466,10 +472,7 @@ def signup(request: Request) -> HTMLResponse:
             settings=settings,
             state="pending",
             heading="Create account",
-            message=(
-                "Join BheemBhai, the governed agent-orchestration platform built for secure, "
-                "scalable automation."
-            ),
+            message=_SIGNUP_INTRO,
         ),
     )
 
@@ -490,7 +493,7 @@ async def signup_submit(request: Request) -> HTMLResponse:
                 settings=settings,
                 state="error",
                 heading="Create account",
-                message="Please fix the highlighted fields and try again.",
+                message=_SIGNUP_INTRO,
                 email_value=email,
                 errors=validation_errors,
             ),
@@ -506,7 +509,7 @@ async def signup_submit(request: Request) -> HTMLResponse:
                 settings=settings,
                 state="error",
                 heading="Create account",
-                message="We couldn't create your account right now. Please try again shortly.",
+                message=_SIGNUP_INTRO,
                 email_value=email,
                 errors=["We couldn't create your account right now. Please try again shortly."],
             ),
@@ -519,7 +522,7 @@ async def signup_submit(request: Request) -> HTMLResponse:
                 settings=settings,
                 state="error",
                 heading="Create account",
-                message="An account with that email already exists.",
+                message=_SIGNUP_INTRO,
                 email_value=email,
                 errors=["An account with that email already exists."],
             ),
