@@ -34,7 +34,9 @@ Layout** table inside `AGENTS.md` at the repo root.
 | Stories list | `docs/product/epics/<EPIC_KEY>/_epic/stories.md` |
 | Story map | `docs/product/epics/<EPIC_KEY>/_epic/story-map.json` |
 | Epic sequence | `docs/product/epics/<EPIC_KEY>/_epic/epic-sequence.md` and `.json` |
+| Epic review log | `docs/product/epics/<EPIC_KEY>/_epic/epic-review.md` |
 | Per-story folder | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/` |
+| Story review log | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/story-review.md` |
 | Story design note | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/story-design.md` |
 | Test plan | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/test-plan.md` |
 | Verification report | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/verification.md` |
@@ -44,10 +46,10 @@ Layout** table inside `AGENTS.md` at the repo root.
 ## Per-story folder rule (scales to hundreds of stories)
 All artifacts for ONE story live in that story's own folder:
 `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/`. Inside it, filenames are SHORT and carry NO
-story-key suffix (the folder already identifies the story): `story-design.md`, `test-plan.md`,
-`verification.md`, `code-review.md`, `design-sync.md`. Any reference to a story's artifact is
+story-key suffix (the folder already identifies the story): `story-review.md`, `story-design.md`,
+`test-plan.md`, `verification.md`, `code-review.md`, `design-sync.md`. Any reference to a story's artifact is
 resolved under that story's folder ONLY — never the flat `docs/product/` root. Likewise, an epic's
-own artifacts (stories list, story-map, epic-sequence) live in
+own artifacts (stories list, story-map, epic-sequence, **epic-review.md**) live in
 `docs/product/epics/<EPIC_KEY>/_epic/`. Project-level artifacts (PRD, epics.md, epic-map.json) stay
 at `docs/product/`. To locate a story's folder you need its epic key — resolve it via
 `docs/product/epic-map.json` (epic → stories) if you only have the story key.

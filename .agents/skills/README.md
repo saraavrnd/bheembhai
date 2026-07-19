@@ -96,6 +96,8 @@ generic — the product (Learn Portal, a payments API, anything) is just the inp
 ### Utility skills
 | Skill | In | Out |
 |-------|----|----|
+| `epic-review` | an epic's full story set (Jira key or `stories.md`) + committed design | cross-story gaps drilled via interview; every affected story rewritten together in place + `epic-review.md` audit log; escalates architecture-conflict gaps to `tech-design` |
+| `story-review` | a written story (Jira key or pasted) + committed design | gaps drilled via interview; story's acceptance criteria rewritten in place + `story-review.md` audit log; escalates architecture-conflict gaps to `tech-design` |
 | `revert-run` | `run_id` / story key / branch + local run ledger | human-approved preview + git rollback / revert record in the local audit trail |
 
 ### The two phases
@@ -123,7 +125,9 @@ model), topologically sorts into **waves** (same-wave stories are independent �
 flags cycles, proposes the order for approval, then sets Jira "blocks" links and writes a
 machine-readable plan. `story-implement` reads that plan: it refuses to start a story whose
 prerequisites aren't merged, and can auto-pick the next eligible story. Flow:
-`user-story → epic-sequence → story-implement (wave by wave)`.
+`user-story → epic-review → epic-sequence → story-implement (wave by wave)` — running
+`epic-review` first means `epic-sequence` sorts a story set whose cross-story contradictions and
+missing dependency notes are already resolved, rather than baking them into the dependency graph.
 
 ### Keeping the design current (anti-drift, for parallel teams)
 Two distinct paths keep the system design and `AGENTS.md` from going stale as multiple developers
@@ -137,6 +141,32 @@ work in parallel:
   and **flags any in-progress stories the change affects**, so parallel work re-aligns proactively
   instead of colliding at merge. `AGENTS.md` is treated as a first-class output because every
   future story's agent reads it first.
+
+### Sharpening a whole epic before its stories scatter: `epic-review`
+On-demand, and cheapest run right after `user-story` finishes an epic — before `epic-sequence`,
+before any per-story `story-review`, before `story-design` touches anything. `story-review` drills
+one story in isolation; some gaps only exist *across* siblings — the same actor/role several
+stories assume but that's never actually defined in the data model, a requirement two stories
+claim in contradicting ways (or that no story claims at all), a cross-epic dependency a story
+quietly assumes but never writes down, a one-sided "depends on me" claim no sibling reciprocates.
+`epic-review` loads the epic's **full** story set together, drills
+`references/gap-checklist.md`'s cross-story categories, and rewrites every affected story in the
+same pass — so the same question doesn't get asked (and answered differently) once per story.
+Logs the interview to `epic-review.md` in the epic's `_epic/` folder. Same escalation posture as
+`story-review`: a gap that's a real architecture conflict (not a legitimate, already-sequenced
+cross-epic dependency) gets flagged to `tech-design` rather than resolved here. It does not
+compute build order — that's still `epic-sequence`'s job.
+
+### Sharpening a story before design: `story-review`
+On-demand, not an automatic stage. Whenever a story reads as ambiguous — right after `user-story`
+produces it, before `story-design` starts, or on an old backlog story nobody's touched — run
+`story-review`. It reads `architecture.md`, `data-model.md`, `api-contracts/`, and sibling stories
+in the same epic, drills the story with pointed questions grounded in what actually exists (not
+generic "any ambiguity?" prompts), then rewrites the acceptance criteria in place with the user's
+sign-off and logs the interview to `story-review.md` in the story's folder. If a gap turns out to
+be an architecture conflict rather than story ambiguity, it flags that for `tech-design` (amend
+mode) instead of resolving it — the same escalation posture `story-design` uses, just one step
+earlier and cheaper.
 
 ### Possible later additions
 Deploy/release skills once stories are merging (e.g. a `release` skill that cuts a versioned
@@ -174,8 +204,8 @@ docs/
 └── product/
     ├── PRD.md  epics.md  epic-map.json        # project-level
     └── epics/<EPIC_KEY>/
-        ├── _epic/             # stories.md, story-map.json, epic-sequence.{md,json}
-        └── stories/<STORY_KEY>/   # story-design.md, test-plan.md, verification.md,
+        ├── _epic/             # stories.md, story-map.json, epic-sequence.{md,json}, epic-review.md
+        └── stories/<STORY_KEY>/   # story-review.md, story-design.md, test-plan.md, verification.md,
                                     #   code-review.md, design-sync.md  (short names, folder carries key)
 ```
 

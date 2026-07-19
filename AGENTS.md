@@ -43,6 +43,8 @@ their own prose, and never hardcode a path from memory.
 | Story map | `docs/product/epics/<EPIC_KEY>/_epic/story-map.json` |
 | Epic sequence (plan) | `docs/product/epics/<EPIC_KEY>/_epic/epic-sequence.md` |
 | Epic sequence (machine-readable) | `docs/product/epics/<EPIC_KEY>/_epic/epic-sequence.json` |
+| Epic review log | `docs/product/epics/<EPIC_KEY>/_epic/epic-review.md` |
+| Story review log | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/story-review.md` |
 | Per-story design notes | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/story-design.md` |
 | Test plans | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/test-plan.md` |
 | Verification reports | `docs/product/epics/<EPIC_KEY>/stories/<STORY_KEY>/verification.md` |
