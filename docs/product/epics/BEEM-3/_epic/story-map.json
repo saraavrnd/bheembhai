@@ -17,6 +17,13 @@
       ]
     },
     {
+      "story_key": "BEEM-19",
+      "summary": "Align authentication screens to approved mockups",
+      "requirement_ids": [
+        "FR-005"
+      ]
+    },
+    {
       "story_key": "BEEM-16",
       "summary": "Bootstrap initial platform admin",
       "requirement_ids": [

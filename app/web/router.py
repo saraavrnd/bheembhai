@@ -122,8 +122,8 @@ def _validate_signup_input(email: str, password: str) -> list[str]:
     errors: list[str] = []
     if not _EMAIL_PATTERN.match(email):
         errors.append("Enter a valid email address.")
-    if len(password) < 12:
-        errors.append("Password must be at least 12 characters.")
+    if len(password) < 6:
+        errors.append("Password must be at least 6 characters.")
     return errors
 
 
@@ -136,6 +136,12 @@ def _validate_login_input(email: str, password: str) -> list[str]:
     return errors
 
 
+_LOGIN_INTRO = (
+    "Sign in to BheemBhai, the governed agent-orchestration platform built for secure, "
+    "scalable automation."
+)
+
+
 @router.get("/login", response_class=HTMLResponse, include_in_schema=False)
 def login(request: Request) -> HTMLResponse:
     settings = get_settings()
@@ -146,7 +152,7 @@ def login(request: Request) -> HTMLResponse:
             settings=settings,
             state="pending",
             heading="Sign in",
-            message="Use your email address and password to access your account.",
+            message=_LOGIN_INTRO,
         ),
     )
 
@@ -167,7 +173,7 @@ async def login_submit(request: Request) -> HTMLResponse:
                 settings=settings,
                 state="error",
                 heading="Sign in",
-                message="Please fix the highlighted fields and try again.",
+                message=_LOGIN_INTRO,
                 email_value=email,
                 errors=validation_errors,
             ),
@@ -182,10 +188,10 @@ async def login_submit(request: Request) -> HTMLResponse:
             _login_context(
                 settings=settings,
                 state="error",
-                heading="Verify your email",
-                message="Please verify your email address before signing in.",
+                heading="Sign in",
+                message=_LOGIN_INTRO,
                 email_value=email,
-                errors=["Please verify your email address before signing in."],
+                errors=["Verify your email before signing in."],
             ),
         )
     except ValueError:
@@ -195,8 +201,8 @@ async def login_submit(request: Request) -> HTMLResponse:
             _login_context(
                 settings=settings,
                 state="error",
-                heading="Sign in failed",
-                message="Incorrect email or password.",
+                heading="Sign in",
+                message=_LOGIN_INTRO,
                 email_value=email,
                 errors=["Incorrect email or password."],
             ),
@@ -216,13 +222,103 @@ async def login_submit(request: Request) -> HTMLResponse:
     )
 
 
+_FORGOT_PASSWORD_INTRO = (
+    "Enter your account email and we'll send you a link to reset your password."
+)
+
+
+def _forgot_password_context(
+    *,
+    settings: object,
+    state: str,
+    heading: str,
+    message: str,
+    email_value: str = "",
+    errors: list[str] | None = None,
+) -> dict[str, object]:
+    return {
+        "app_name": settings.app_name,
+        "state": state,
+        "heading": heading,
+        "message": message,
+        "home_url": "/",
+        "post_url": "/forgot-password",
+        "email_value": email_value,
+        "errors": errors or [],
+    }
+
+
+@router.get("/forgot-password", response_class=HTMLResponse, include_in_schema=False)
+def forgot_password(request: Request) -> HTMLResponse:
+    settings = get_settings()
+    return templates.TemplateResponse(
+        request,
+        "auth/forgot_password.html",
+        _forgot_password_context(
+            settings=settings,
+            state="pending",
+            heading="Forgot password",
+            message=_FORGOT_PASSWORD_INTRO,
+        ),
+    )
+
+
+@router.post("/forgot-password", response_class=HTMLResponse, include_in_schema=False)
+async def forgot_password_submit(request: Request) -> HTMLResponse:
+    settings = get_settings()
+    fields = await _read_urlencoded_form(request)
+    email = fields.get("email", "").strip()
+
+    if not _EMAIL_PATTERN.match(email):
+        return templates.TemplateResponse(
+            request,
+            "auth/forgot_password.html",
+            _forgot_password_context(
+                settings=settings,
+                state="error",
+                heading="Forgot password",
+                message=_FORGOT_PASSWORD_INTRO,
+                email_value=email,
+                errors=["Enter a valid email address."],
+            ),
+        )
+
+    try:
+        _auth_service(request).request_password_reset(email)
+    except Exception:
+        return templates.TemplateResponse(
+            request,
+            "auth/forgot_password.html",
+            _forgot_password_context(
+                settings=settings,
+                state="error",
+                heading="Forgot password",
+                message=_FORGOT_PASSWORD_INTRO,
+                email_value=email,
+                errors=["We couldn't send the reset email. Please try again shortly."],
+            ),
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "auth/forgot_password.html",
+        _forgot_password_context(
+            settings=settings,
+            state="success",
+            heading="Check your email",
+            message=f"If an account exists for {email}, we've sent a link to reset your password.",
+            email_value=email,
+        ),
+    )
+
+
 @router.get("/verify-email", response_class=HTMLResponse, include_in_schema=False)
 def verify_email(request: Request) -> HTMLResponse:
     settings = get_settings()
 
     state = "pending"
     heading = "Verify your email"
-    message = "Open the email link and the page will verify your address automatically."
+    message = "We're verifying your email address. This should only take a moment."
     verified_email = None
 
     return templates.TemplateResponse(
@@ -254,7 +350,7 @@ async def verify_email_submit(request: Request) -> HTMLResponse:
 
     if not token.strip():
         state = "error"
-        heading = "Verification link missing"
+        heading = "Verify your email"
         message = "The verification link did not include a token."
     else:
         try:
@@ -262,7 +358,7 @@ async def verify_email_submit(request: Request) -> HTMLResponse:
             verified_email = verified_user.email
         except InvalidTokenError:
             state = "error"
-            heading = "Verification failed"
+            heading = "Verify your email"
             message = "This link is invalid or has expired. Please request a new one."
 
     return templates.TemplateResponse(
@@ -281,6 +377,9 @@ async def verify_email_submit(request: Request) -> HTMLResponse:
     )
 
 
+_RESET_PASSWORD_INTRO = "Choose a new password to finish resetting your BheemBhai account."
+
+
 @router.get("/reset-password", response_class=HTMLResponse, include_in_schema=False)
 def reset_password(request: Request) -> HTMLResponse:
     settings = get_settings()
@@ -290,10 +389,11 @@ def reset_password(request: Request) -> HTMLResponse:
         {
             "app_name": settings.app_name,
             "state": "pending",
-            "heading": "Reset your password",
-            "message": "Choose a new password to finish resetting your account.",
+            "heading": "Reset password",
+            "message": _RESET_PASSWORD_INTRO,
             "home_url": "/",
             "post_url": "/reset-password",
+            "errors": [],
         },
     )
 
@@ -305,25 +405,40 @@ async def reset_password_submit(request: Request) -> HTMLResponse:
     fields = await _read_urlencoded_form(request)
     token = fields.get("token", "").strip()
     new_password = fields.get("new_password", "").strip()
+    confirm_password = fields.get("confirm_password", "").strip()
 
     state = "success"
     heading = "Password updated"
     message = "Your password has been updated. You can now sign in with the new password."
+    errors: list[str] = []
     if not token:
         state = "error"
-        heading = "Reset link missing"
-        message = "The reset link did not include a token."
+        heading = "Reset password"
+        message = _RESET_PASSWORD_INTRO
+        errors = ["The reset link did not include a token."]
     elif not new_password:
         state = "error"
-        heading = "Missing password"
-        message = "Please enter a new password."
+        heading = "Reset password"
+        message = _RESET_PASSWORD_INTRO
+        errors = ["Please enter a new password."]
+    elif len(new_password) < 6:
+        state = "error"
+        heading = "Reset password"
+        message = _RESET_PASSWORD_INTRO
+        errors = ["Password must be at least 6 characters."]
+    elif new_password != confirm_password:
+        state = "error"
+        heading = "Reset password"
+        message = _RESET_PASSWORD_INTRO
+        errors = ["Passwords do not match."]
     else:
         try:
             service.confirm_password_reset(token, new_password)
         except InvalidTokenError:
             state = "error"
-            heading = "Reset failed"
-            message = "This link is invalid or has expired. Please request a new one."
+            heading = "Reset password"
+            message = _RESET_PASSWORD_INTRO
+            errors = ["This link is invalid or has expired. Please request a new one."]
 
     return templates.TemplateResponse(
         request,
@@ -336,8 +451,15 @@ async def reset_password_submit(request: Request) -> HTMLResponse:
             "home_url": "/",
             "post_url": "/reset-password",
             "token": token,
+            "errors": errors,
         },
     )
+
+
+_SIGNUP_INTRO = (
+    "Join BheemBhai, the governed agent-orchestration platform built for secure, "
+    "scalable automation."
+)
 
 
 @router.get("/signup", response_class=HTMLResponse, include_in_schema=False)
@@ -349,8 +471,8 @@ def signup(request: Request) -> HTMLResponse:
         _signup_context(
             settings=settings,
             state="pending",
-            heading="Sign up",
-            message="Create your local account with an email address and password.",
+            heading="Create account",
+            message=_SIGNUP_INTRO,
         ),
     )
 
@@ -370,14 +492,28 @@ async def signup_submit(request: Request) -> HTMLResponse:
             _signup_context(
                 settings=settings,
                 state="error",
-                heading="Sign up",
-                message="Please fix the highlighted fields and try again.",
+                heading="Create account",
+                message=_SIGNUP_INTRO,
                 email_value=email,
                 errors=validation_errors,
             ),
         )
 
-    result = _auth_service(request).register_user(email=email, password=password)
+    try:
+        result = _auth_service(request).register_user(email=email, password=password)
+    except Exception:
+        return templates.TemplateResponse(
+            request,
+            "auth/signup.html",
+            _signup_context(
+                settings=settings,
+                state="error",
+                heading="Create account",
+                message=_SIGNUP_INTRO,
+                email_value=email,
+                errors=["We couldn't create your account right now. Please try again shortly."],
+            ),
+        )
     if result.action == "skipped":
         return templates.TemplateResponse(
             request,
@@ -385,8 +521,8 @@ async def signup_submit(request: Request) -> HTMLResponse:
             _signup_context(
                 settings=settings,
                 state="error",
-                heading="Sign up",
-                message="An account with that email already exists.",
+                heading="Create account",
+                message=_SIGNUP_INTRO,
                 email_value=email,
                 errors=["An account with that email already exists."],
             ),

@@ -1,54 +1,77 @@
-{% extends "base.html" %}
+{% extends "layouts/auth.html" %}
 
-{% block content %}
-<section class="hero-card container py-5">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-8">
-      <div class="auth-card">
-        <p class="eyebrow mb-2">Account activation</p>
-        <h1 class="display-4 fw-semibold mb-3">{{ heading }}</h1>
-        <p class="lead mb-4">{{ message }}</p>
+{% block hero_modifier %}auth-hero--verify{% endblock %}
+{% block shell_modifier %}auth-shell--center{% endblock %}
 
-        {% if verified_email %}
-          <p class="auth-meta mb-4">
-            Verified account: <strong>{{ verified_email }}</strong>
-          </p>
+{% block auth_body %}
+    <div class="auth-card auth-card--verify">
+      {% if state == "success" %}
+        <div class="auth-verify-mark" aria-hidden="true">
+          <span class="auth-verify-mark__ring">
+            <svg width="40" height="40" class="auth-verify-mark__icon icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#check"></use></svg>
+          </span>
+        </div>
+      {% endif %}
+
+      <div class="auth-card__header auth-card__header--centered">
+        <h1 class="auth-title">{{ heading }}</h1>
+        {% if state != "error" %}
+          <p class="auth-intro auth-intro--compact">{{ message }}</p>
         {% endif %}
+      </div>
 
+      {% if state == "error" %}
+        <div class="alert alert-danger d-flex align-items-start gap-3 mb-4" role="alert" aria-live="polite">
+          <svg width="18" height="18" class="flex-shrink-0 mt-1 icon" aria-hidden="true"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#alert-triangle"></use></svg>
+          <p class="mb-0">{{ message }}</p>
+        </div>
+      {% endif %}
+
+      <div class="alert alert-danger d-flex align-items-start gap-3 mb-4 d-none" id="verify-token-alert" role="alert" aria-live="polite">
+        <svg width="18" height="18" class="flex-shrink-0 mt-1 icon" aria-hidden="true"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#alert-triangle"></use></svg>
+        <p class="mb-0">This verification link is missing or invalid. Please request a new one.</p>
+      </div>
+
+      {% if verified_email %}
+        <p class="auth-meta auth-meta--centered mb-4">
+          Verified account: <strong>{{ verified_email }}</strong>
+        </p>
+      {% endif %}
+
+      {% if state == "success" %}
+        <div class="auth-actions auth-actions--center">
+          <a class="btn btn-primary btn-primary--wide" href="/login">Continue to sign in</a>
+        </div>
+      {% else %}
         <form id="verify-form" method="post" action="{{ post_url }}" class="d-none">
           <input type="hidden" name="token" id="verify-token" value="{{ token | default('') }}">
         </form>
 
-        <div class="d-flex flex-wrap gap-3 align-items-center">
-          <a class="btn btn-primary" href="{{ home_url }}">Go home</a>
-          <span class="status-pill status-pill--{{ state }}">{{ state }}</span>
-        </div>
-
-        <p class="auth-meta mt-4" id="verify-hint">
-          If this page was opened from your email link, it will verify automatically.
-        </p>
-
         <noscript>
-          <p class="auth-meta mt-3">
+          <p class="auth-meta auth-meta--centered mt-3">
             JavaScript is required to complete email verification from the link.
           </p>
         </noscript>
-      </div>
+      {% endif %}
     </div>
-  </div>
-</section>
+{% endblock %}
 
+{% block auth_scripts %}
 <script>
   (() => {
+    const form = document.getElementById("verify-form");
+    if (!form) {
+      return;
+    }
     const fragment = new URLSearchParams(window.location.hash.slice(1));
     const token = fragment.get("token");
     const tokenInput = document.getElementById("verify-token");
-    const form = document.getElementById("verify-form");
-    const hint = document.getElementById("verify-hint");
-    if (!token || !tokenInput || !form) {
-      if (hint) {
-        hint.textContent = "Open the link from your email so the token can be verified.";
+    const alertBox = document.getElementById("verify-token-alert");
+    if (!token || !tokenInput) {
+      if (alertBox) {
+        alertBox.classList.remove("d-none");
       }
+      form.classList.add("d-none");
       return;
     }
     tokenInput.value = token;

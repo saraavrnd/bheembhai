@@ -4,7 +4,7 @@
 
 ## Overview
 
-BeemBhai is a governed workflow orchestration platform for reusable agent skills. The MVP is a
+BheemBhai is a governed workflow orchestration platform for reusable agent skills. The MVP is a
 story-to-PR SDLC engine that runs backend-owned workflows, pauses for policy-gated review, resumes
 after approval, and leaves a durable audit trail of every transition and cost-bearing action.
 

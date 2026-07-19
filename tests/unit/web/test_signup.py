@@ -32,7 +32,7 @@ def _build_test_app(monkeypatch, signup_service: FakeSignupService):
         app_main,
         "get_settings",
         lambda: SimpleNamespace(
-            app_name="BeemBhai",
+            app_name="BheemBhai",
             version="0.1.0",
             api_version="v1",
             database_url="sqlite+pysqlite://",
@@ -63,10 +63,16 @@ def test_signup_page_renders_form(monkeypatch) -> None:
         response = client.get("/signup")
 
     assert response.status_code == 200
-    assert "Sign up" in response.text
+    assert "Create account" in response.text
+    assert "Join BheemBhai, the governed agent-orchestration platform" in response.text
     assert 'name="email"' in response.text
     assert 'name="password"' in response.text
-    assert "Create account" in response.text
+    assert 'name="confirm_password"' in response.text
+    assert "At least 6 characters." in response.text
+    assert "Already have an account?" in response.text
+    assert "Enterprise grade security" not in response.text
+    assert "Data privacy by design" not in response.text
+    assert "99.9% platform uptime" not in response.text
 
 
 def test_signup_submit_shows_validation_errors(monkeypatch) -> None:
@@ -94,8 +100,8 @@ def test_signup_submit_shows_validation_errors(monkeypatch) -> None:
     assert response.status_code == 200
     assert service.register_calls == []
     assert "Enter a valid email address." in response.text
-    assert "Password must be at least 12 characters." in response.text
-    assert "status-pill--error" in response.text
+    assert "Password must be at least 6 characters." in response.text
+    assert "alert-danger" in response.text
 
 
 def test_signup_submit_shows_duplicate_email_error(monkeypatch) -> None:
@@ -124,4 +130,21 @@ def test_signup_submit_shows_duplicate_email_error(monkeypatch) -> None:
     assert response.status_code == 200
     assert service.register_calls == [("visitor@example.com", "SignupPassword123!")]
     assert "An account with that email already exists." in response.text
-    assert "status-pill--error" in response.text
+    assert "alert-danger" in response.text
+
+
+def test_signup_submit_shows_friendly_error_when_registration_raises(monkeypatch) -> None:
+    service = FakeSignupService(error=RuntimeError("brevo unavailable"))
+    app = _build_test_app(monkeypatch, service)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/signup",
+            data={"email": "visitor@example.com", "password": "SignupPassword123!"},
+        )
+
+    assert response.status_code == 200
+    assert service.register_calls == [("visitor@example.com", "SignupPassword123!")]
+    assert "We couldn&#39;t create your account right now" in response.text
+    assert "alert-danger" in response.text
+    assert "Internal Server Error" not in response.text

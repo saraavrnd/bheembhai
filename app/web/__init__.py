@@ -1,1 +1,1 @@
-"""Server-rendered web UI for BeemBhai."""
+"""Server-rendered web UI for BheemBhai."""

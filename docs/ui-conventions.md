@@ -7,7 +7,10 @@ consistency and clarity, not a heavyweight frontend application.
 
 ## Framework and component structure
 
-- Stack: server-rendered Jinja2 templates, Bootstrap 5.3.8, minimal vanilla JavaScript.
+- Stack: server-rendered Jinja2 templates, Bootstrap 5, minimal vanilla JavaScript. The EduAdmin
+  theme bundle vendored into the repo ships Bootstrap **5.3.3** (not the 5.3.8 originally assumed
+  here) — that's the version actually present under `app/web/static/vendor/bootstrap/`; there's
+  no need to chase 5.3.8 separately since the theme itself only provides 5.3.3.
 - Theme shell: `EduAdmin` Bootstrap 5, using the non-RTL `bs5/main-mini-sidebar` variant as the
   default authenticated layout.
 - Component location: templates grouped by feature, with shared fragments for navigation, tables,
@@ -59,6 +62,13 @@ Copy only the assets that the shell actually needs:
 Do not copy the demo pages, charts, mailbox, ecommerce, or app-specific examples unless a specific
 story needs them. Keep the first import set small so the BheemBhai branding and templates remain
 easy to understand.
+
+**Current state (as of BEEM-20):** only `bootstrap.min.css` (vendored verbatim from the theme
+bundle) and `feather-sprite.svg` — the chosen icon set — are copied in, under
+`app/web/static/vendor/`, wired into the 4 auth screens only. `style.css`, `vendors_css.css`,
+`skin_color.css`, `template.js`, and the theme's image assets are **not yet present** — those
+still need to land whenever the authenticated `main-mini-sidebar` dashboard shell gets built. A
+story-design for that dashboard shell should not assume the full theme is already scaffolded.
 
 ## Scaffold responsibility
 

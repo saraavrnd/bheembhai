@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: BeemBhai API
+  title: BheemBhai API
   version: 1.0.0
   description: |
     Backend contract for governed workflow orchestration, approvals, integrations, and run audit.

@@ -1,7 +1,7 @@
 # Stories — BEEM-3 (Project access, identity & run ownership)
 
 Epic `BEEM-3` covers FR-001, FR-002, FR-003, FR-004, FR-005, and FR-006. It has been decomposed
-into 7 stories below. `BEEM-17` is the regular-user signup prerequisite, and `BEEM-16` is the
+into 8 stories below. `BEEM-17` is the regular-user signup prerequisite, and `BEEM-16` is the
 bootstrap prerequisite that seeds the first platform admin; the remaining stories then build on
 that identity and access foundation.
 
@@ -80,6 +80,61 @@ Sign in, email verification activation, password reset, MFA, SSO, social login, 
 
 ### Notes / dependencies
 Depends on `BEEM-17`, which provides the registration API and verification-email flow. This story should reuse the existing browser UI patterns used by the verification and reset-password pages and remain a thin UI layer over the existing registration flow.
+
+---
+
+## STORY: Align authentication screens to approved mockups  (BEEM-19)
+**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 3 · **Labels:** fa-1, frontend, mvp
+
+### Story
+As a **visitor**, I want **the signup, sign-in, reset password, and verify email screens to match the approved mockups**, so that **the account-access flow feels consistent and polished**.
+
+### Acceptance Criteria
+**Scenario: Signup screen matches the approved mockup**
+- Given a visitor opens the signup page
+- When the page loads
+- Then the page renders the approved centered card layout from `signup-light.png`
+- And the email, password, and confirm-password fields are visible in the same order as the mockup
+- And the primary "Create account" button and sign-in link are visible
+- And the trust-footer content remains visible below the form
+
+**Scenario: Sign-in screen matches the approved mockup**
+- Given a visitor opens the sign-in page
+- When the page loads
+- Then the page renders the approved centered card layout from `signin-unified.png`
+- And the email and password fields are visible
+- And the verify-email callout, forgot-password link, and contact-support link are visible
+- And the primary "Sign in" button is visible
+
+**Scenario: Reset password screen matches the approved mockup**
+- Given a visitor opens the reset-password page with a valid token
+- When the page loads
+- Then the page renders the approved two-panel layout from `reset-password.png`
+- And the new-password field, "Update password" button, and "Go home" button are visible
+- And the token-loaded info panel is visible
+- And the success panel remains available after a successful password update
+
+**Scenario: Verify email screen matches the approved mockup**
+- Given a visitor opens the verify-email page with a valid token
+- When the page loads
+- Then the page renders the approved verified layout from `verify-email-unified.png`
+- And the verification-flow panel with the email-sent, link-clicked, and email-verified states is visible
+- And the "Go home" button and "Resend email" action are visible
+- And the page still auto-verifies when the token is present in the email-link fragment
+
+**Scenario: Auth screens remain usable on a narrow viewport**
+- Given a visitor opens any of the four auth screens on a 390px-wide viewport
+- When the page loads
+- Then the primary form controls and actions remain visible without horizontal scrolling
+
+### Covered requirements
+- FR-005
+
+### Out of scope
+Changing auth routes, backend logic, validation rules, token handling, email delivery, MFA, SSO, social login, or any new auth copy beyond the approved mockups.
+
+### Notes / dependencies
+Depends on the existing auth flow stories (`BEEM-18` for signup and `BEEM-14` for sign-in, reset password, and verify email). Use the approved mockups in `output/imagegen/beem-3-ui-mockups/` as the visual source of truth.
 
 ---
 

@@ -1,10 +1,10 @@
-# PRD — BeemBhai
+# PRD — BheemBhai
 
 **Status:** Draft · **Owner:** TBD · **Last updated:** 2026-07-09
 
 ## 1. Problem & Opportunity
 
-AI coding agents have made individual software development faster, but organizations still lack a governed, observable, team-scale way to orchestrate agents across the full product delivery lifecycle. Work remains siloed in terminals, approvals are manual or absent, costs are opaque, and agent execution is fragile when workflows pause for humans or run remotely. BeemBhai addresses this by turning reusable agent skills into backend-orchestrated, policy-governed, auditable workflows, starting with a story-to-PR SDLC flow and expanding later to the broader product success lifecycle.
+AI coding agents have made individual software development faster, but organizations still lack a governed, observable, team-scale way to orchestrate agents across the full product delivery lifecycle. Work remains siloed in terminals, approvals are manual or absent, costs are opaque, and agent execution is fragile when workflows pause for humans or run remotely. BheemBhai addresses this by turning reusable agent skills into backend-orchestrated, policy-governed, auditable workflows, starting with a story-to-PR SDLC flow and expanding later to the broader product success lifecycle.
 
 ## 2. Target Users
 

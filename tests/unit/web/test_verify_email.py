@@ -83,6 +83,13 @@ def test_verify_email_page_mentions_fragment_handshake(monkeypatch) -> None:
     assert response.status_code == 200
     assert "window.location.hash" in response.text
     assert "verify-form" in response.text
+    assert "verify-token-alert" in response.text
+    assert "We&#39;re verifying your email address" in response.text
+    assert "Verification link flow" not in response.text
+    assert "Email sent" not in response.text
+    assert "Link clicked" not in response.text
+    assert "Resend email" not in response.text
+    assert "auth-chip--verified" not in response.text
 
 
 def test_verify_email_submit_confirms_valid_token(monkeypatch) -> None:
@@ -115,8 +122,10 @@ def test_verify_email_submit_shows_failure_for_invalid_token(monkeypatch) -> Non
 
     assert response.status_code == 200
     assert service.verification_tokens == ["bad-token"]
-    assert "Verification failed" in response.text
+    assert "Verify your email" in response.text
+    assert "Verification failed" not in response.text
     assert "expired" in response.text
+    assert response.text.count("expired") == 1
 
 
 def test_reset_password_page_mentions_fragment_handshake(monkeypatch) -> None:
@@ -137,6 +146,16 @@ def test_reset_password_page_mentions_fragment_handshake(monkeypatch) -> None:
     assert response.status_code == 200
     assert "window.location.hash" in response.text
     assert "new_password" in response.text
+    assert "confirm_password" in response.text
+    assert "reset-token-alert" in response.text
+    assert "Reset password" in response.text
+    assert "Choose a new password to finish resetting your BheemBhai account." in response.text
+    assert "Update password" in response.text
+    assert "At least 6 characters." in response.text
+    assert "Token loaded" not in response.text
+    assert "Password updated" not in response.text
+    assert "Go home" not in response.text
+    assert "Open the link from your email" not in response.text
 
 
 def test_reset_password_submit_confirms_new_password(monkeypatch) -> None:
@@ -154,12 +173,44 @@ def test_reset_password_submit_confirms_new_password(monkeypatch) -> None:
     with TestClient(app) as client:
         response = client.post(
             "/reset-password",
-            data={"token": "reset-token", "new_password": "NewPassword123!"},
+            data={
+                "token": "reset-token",
+                "new_password": "NewPassword123!",
+                "confirm_password": "NewPassword123!",
+            },
         )
 
     assert response.status_code == 200
     assert service.reset_tokens == [("reset-token", "NewPassword123!")]
     assert "Password updated" in response.text
+
+
+def test_reset_password_submit_rejects_mismatched_confirmation(monkeypatch) -> None:
+    service = FakeAuthService(
+        user=UserRecord(
+            id="user-2",
+            email="admin@example.com",
+            password_hash="hashed",
+            platform_role="admin",
+            email_verified_at=None,
+        )
+    )
+    app = _build_test_app(monkeypatch, service)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/reset-password",
+            data={
+                "token": "reset-token",
+                "new_password": "NewPassword123!",
+                "confirm_password": "SomethingElse123!",
+            },
+        )
+
+    assert response.status_code == 200
+    assert service.reset_tokens == []
+    assert "Passwords do not match." in response.text
+    assert "Reset password" in response.text
 
 
 def test_reset_password_submit_shows_failure_for_invalid_token(monkeypatch) -> None:
@@ -169,10 +220,15 @@ def test_reset_password_submit_shows_failure_for_invalid_token(monkeypatch) -> N
     with TestClient(app) as client:
         response = client.post(
             "/reset-password",
-            data={"token": "bad-reset-token", "new_password": "NewPassword123!"},
+            data={
+                "token": "bad-reset-token",
+                "new_password": "NewPassword123!",
+                "confirm_password": "NewPassword123!",
+            },
         )
 
     assert response.status_code == 200
     assert service.reset_tokens == [("bad-reset-token", "NewPassword123!")]
-    assert "Reset failed" in response.text
+    assert "Reset password" in response.text
+    assert "Reset failed" not in response.text
     assert "expired" in response.text
