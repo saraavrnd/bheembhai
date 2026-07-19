@@ -1,9 +1,10 @@
 # Stories — BEEM-3 (Project access, identity & run ownership)
 
 Epic `BEEM-3` covers FR-001, FR-002, FR-003, FR-004, FR-005, and FR-006. It has been decomposed
-into 8 stories below. `BEEM-17` is the regular-user signup prerequisite, and `BEEM-16` is the
+into 9 stories below. `BEEM-17` is the regular-user signup prerequisite, and `BEEM-16` is the
 bootstrap prerequisite that seeds the first platform admin; the remaining stories then build on
-that identity and access foundation.
+that identity and access foundation. `BEEM-21` (edit project) was added in a second `epic-review`
+pass on 2026-07-19 — see `epic-review.md`.
 
 ---
 
@@ -180,17 +181,17 @@ This is the prerequisite seed for `BEEM-12`, `BEEM-13`, and `BEEM-15`. It should
 **Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 3 · **Labels:** fa-1, mvp
 
 ### Story
-As an **admin**, I want **to create a project with a linked GitHub repository and let signed-in users see only the projects they can access**, so that **teams stay scoped to the right codebases**.
+As a **platform admin** (`platform_role = PLATFORM_ADMIN`), I want **to create a project by name and let signed-in users see only the projects they can access**, so that **teams stay scoped to the right codebases and can attach whichever tools the project actually needs afterward**.
 
 ### Acceptance Criteria
-**Scenario: Admin creates a project with a linked repository**
-- Given an admin user is signed in
-- When they create a project with a name and a GitHub repository identifier
-- Then the project is saved with that exact name and repository reference
+**Scenario: Admin creates a project with just a name**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`
+- When they create a project with a name
+- Then the project is saved with that exact name and zero integration bindings
 
-**Scenario: Missing repository is rejected**
-- Given an admin user is signed in
-- When they create a project without a GitHub repository identifier
+**Scenario: Missing name is rejected**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`
+- When they create a project without a name
 - Then the request is rejected and no project is created
 
 **Scenario: Signed-in user sees accessible projects**
@@ -204,14 +205,81 @@ As an **admin**, I want **to create a project with a linked GitHub repository an
 - Then that project does not appear in the list
 
 ### Covered requirements
-- FR-001
+- FR-001 (name-only creation — see Notes/dependencies on the PRD wording mismatch this creates)
 - FR-002
 
 ### Out of scope
-Assigning project roles, workflow-policy pairing, repository reachability validation, and any run execution features.
+Linking any integration provider — GitHub, Jira, or any other code-versioning/project-management/
+devops tool category. Project creation no longer requires or accepts a repository (or any other
+tool) reference directly; attaching and validating tool bindings is `BHEEM-4`'s
+(`ProjectIntegrationBinding`) deliverable, not this story's. Also out of scope: assigning
+additional project roles beyond the initial project-manager mapping created here, workflow-policy
+pairing, and any run execution features.
 
 ### Notes / dependencies
-Depends on the authenticated-user baseline from FR-005 and the project access model used by later approval stories.
+Depends on the authenticated-user baseline from FR-005 and the project access model used by later
+approval stories. Depends on `BEEM-16` for the first platform admin account. Only `platform_role =
+PLATFORM_ADMIN` may create a project — unlike `BEEM-13`/`BEEM-15`, `Membership.role =
+PROJECT_MANAGER` is not sufficient here, since a project has no members yet at creation time. A
+newly created project has zero memberships until `BEEM-15`'s role-assignment capability is used to
+map its first `PROJECT_MANAGER` — whether project creation should auto-assign the creating admin as
+`PROJECT_MANAGER` was not specified and is left to `story-design` to confirm rather than assumed
+here.
+
+**Rescoped in the 2026-07-19 `epic-review` pass (round 2):** `githubRepositoryRef`/
+`jiraProjectKey` are no longer part of project creation. A project can exist with a name and no
+tool bindings; GitHub, Jira, and any future integration category (code-versioning, project-
+management, devops, …) are attached afterward through the generic `ProjectIntegrationBinding`
+mechanism owned by `BHEEM-4` (Integration providers & secrets vaulting), which is sequenced
+immediately after this epic. This story now has an explicit, stated dependency on `BHEEM-4` for a
+project to have any tool actually wired up — see `epic-review.md` for the full rationale and
+`ADR-008` for the locked technical decision (data-model.md/openapi.yaml already updated). This
+rescoping also means PRD `FR-001`'s current wording ("...with a name and linked GitHub
+repository") no longer matches this story; updating the PRD text is outside this skill's
+authority and is flagged, not done here.
+
+---
+
+## STORY: Edit project details  (BEEM-21)
+**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 2 · **Labels:** fa-1, mvp
+
+### Story
+As a **platform admin or project manager** (`platform_role = PLATFORM_ADMIN`, or `Membership.role
+= PROJECT_MANAGER` for this project), I want **to edit a project's name**, so that **I can correct
+or update project metadata as the team's needs change**.
+
+### Acceptance Criteria
+**Scenario: Admin or project manager edits the project name**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role =
+  PROJECT_MANAGER` for this project
+- When they submit an updated project name
+- Then the project's name is updated and persisted
+
+**Scenario: Ineligible user cannot edit the project**
+- Given a signed-in user without `platform_role = PLATFORM_ADMIN` and without a `Membership.role =
+  PROJECT_MANAGER` for this project
+- When they attempt to edit the project
+- Then the request is rejected and the project is unchanged
+
+**Scenario: Invalid input is rejected**
+- Given the submitted name is missing or invalid
+- When the edit is submitted
+- Then the request is rejected with a clear validation error and no change is persisted
+
+### Covered requirements
+- FR-001 (extends project lifecycle management to editing — no dedicated FR/NFR ID exists for
+  "edit project"; see Requirement coverage check in `epic-review.md`)
+
+### Out of scope
+Editing integration bindings (already its own surface — `PUT /projects/{projectId}/integrations`,
+owned by `BHEEM-4`), editing workflow-policy pairings (`BEEM-13`), editing project membership or
+roles (`BEEM-15`), and deleting a project entirely (not in scope for any BEEM-3 story).
+
+### Notes / dependencies
+Depends on `BEEM-12` for the project to exist and on `BEEM-16` for the first platform admin
+account. Uses the already-existing `PATCH /projects/{projectId}` endpoint, which predates this
+story in the API contract. Added in the 2026-07-19 `epic-review` pass (round 2) — no story
+previously exercised this endpoint.
 
 ---
 
@@ -219,11 +287,11 @@ Depends on the authenticated-user baseline from FR-005 and the project access mo
 **Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 5 · **Labels:** fa-1, mvp
 
 ### Story
-As an **admin**, I want **to assign a version-pinned workflow-policy pairing to a project and let run users pick only approved pairings**, so that **runs cannot weaken governance**.
+As a **platform admin or project manager** (`platform_role = PLATFORM_ADMIN`, or `Membership.role = PROJECT_MANAGER` for this project), I want **to assign a version-pinned workflow-policy pairing to a project and let run users pick only approved pairings**, so that **runs cannot weaken governance**.
 
 ### Acceptance Criteria
-**Scenario: Admin pins a workflow-policy pairing**
-- Given an admin is signed in
+**Scenario: Admin or project manager pins a workflow-policy pairing**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project
 - When they assign a workflow version and a policy version to a project
 - Then the project stores the exact versions that were selected
 
@@ -250,7 +318,7 @@ As an **admin**, I want **to assign a version-pinned workflow-policy pairing to 
 Editing workflow definitions or policy definitions themselves, and the run-execution lifecycle after a pairing is selected.
 
 ### Notes / dependencies
-Depends on the project access baseline and the versioned workflow/policy records from the workflow-definition epic.
+Depends on the project access baseline and the versioned workflow/policy records from the workflow-definition epic. Depends on `BEEM-16` for the first platform admin account, and on `BEEM-12` for the project's `PROJECT_MANAGER` membership to exist before that actor can pin a pairing. "Run user" here means any authenticated project member picking a pairing when creating a run — it is not a distinct `Membership.role` value.
 
 ---
 
@@ -302,46 +370,39 @@ Depends on the local user registration story and email delivery plumbing from th
 
 ---
 
-## STORY: Assign project roles for approvals  (BEEM-15)
-**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 3 · **Labels:** fa-1, mvp
+## STORY: Manage project membership and roles  (BEEM-15)
+**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 5 · **Labels:** fa-1, mvp
 
 ### Story
-As a **project admin**, I want **to assign project roles and have approvals honor those roles**, so that **only authorized reviewers can approve gated steps**.
+As a **platform admin or project manager** (`platform_role = PLATFORM_ADMIN`, or `Membership.role = PROJECT_MANAGER` for this project), I want **to assign a project role to a member, remove a member's membership, or mark a membership inactive**, so that **the platform records who holds which role on the project — ready for later approval-eligibility checks — and stays accurate as the team changes**.
 
 ### Acceptance Criteria
-**Scenario: Admin assigns an approval role to a project member**
-- Given a project admin is signed in
-- When they assign the Reviewer role to a project member
-- Then the member is stored as eligible to approve steps that require the Reviewer role
+**Scenario: Admin or project manager assigns a project role to a member**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project
+- When they assign a `Membership.role` (e.g. Reviewer) to a project member
+- Then the member's membership record is stored with that role
 
-**Scenario: Eligible reviewer can approve**
-- Given a project member has the required approval role for a gated step
-- When they approve the step
-- Then the approval action is accepted
+**Scenario: Admin or project manager removes a member's membership**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project
+- When they remove a project member's membership
+- Then the membership record is deleted and that member no longer has access to the project
 
-**Scenario: Ineligible project member cannot approve**
-- Given a project member does not have the required approval role for a gated step
-- When they try to approve the step
-- Then the approval is rejected and the step remains pending
-
-**Scenario: Non-member cannot approve**
-- Given a user is not a member of the project
-- When they try to approve a gated step for that project
-- Then the approval is rejected
-
-**Scenario: Approval chooser shows only eligible reviewers**
-- Given a gated step requires the Reviewer role
-- When the approval request is presented
-- Then only project members with the Reviewer role are shown as eligible approvers
+**Scenario: Admin or project manager marks a membership inactive**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project
+- When they mark a member's membership inactive
+- Then the membership record is retained with its role intact, but the member no longer has active access to the project
 
 ### Covered requirements
-- FR-006
+- FR-006 (assignment half only — see Notes/dependencies). Removal and deactivation aren't tied to
+  any existing FR/NFR ID — see Requirement coverage check in `epic-review.md`.
 
 ### Out of scope
-Approval decision storage, approval notifications, workflow routing after approval, and multi-reviewer quorum rules.
+Approval-eligibility enforcement (which member can approve a given gated step), approval decision storage, approval notifications, workflow routing after approval, and multi-reviewer quorum rules. These require a gated-step/workflow concept that doesn't exist yet in this epic and belong to a story in the human-approvals epic (`BHEEM-8`) once that concept is built. Also out of scope: reactivating a previously-deactivated membership, and whether removing/deactivating a project's *last* remaining `PROJECT_MANAGER` should be blocked — both left to `story-design` to confirm rather than assumed here.
 
 ### Notes / dependencies
-Depends on project membership from the access story and on the approval-gate workflow from the orchestration epic.
+Depends on project membership from `BEEM-12` and on `BEEM-16` for the first platform admin account. FR-006 ("role-based approval eligibility") is only partly covered here: this story covers *assigning* a role to a member; *honoring* that role during a gated-step approval (eligible/ineligible reviewer, non-member rejection, approval chooser) is out of scope and needs its own story in `BHEEM-8` (Human approvals & stage collaboration) — flagged for that epic's own `user-story`/`epic-review` pass, not resolved here. The assignable `Membership.role` value set is an extensible, platform-wide catalog (`ProjectRole`, see ADR-007) rather than a fixed enum, resolved in the prior `epic-review` pass. **Extended in the 2026-07-19 `epic-review` pass (round 2)** to cover membership removal and deactivation, which the API contract and prior stories didn't support at all (no `DELETE` endpoint, no `isActive` field on `Membership`) — flagged as an architecture item in `epic-review.md` for `tech-design` (amend mode), now resolved by `ADR-009`: `Membership.isActive`, `DELETE /projects/{projectId}/members/{userId}`, and membership changes now append to the `StateTransition` audit log. Reactivation behavior and the last-`PROJECT_MANAGER` safeguard remain open for this story's own `story-design` to confirm (see ADR-009's consequences).
 
 ---
-Coverage summary: FR-001, FR-002, FR-003, FR-004, FR-005, and FR-006 are all covered by at least one story.
+Coverage summary: FR-001, FR-002, FR-003, FR-004, FR-005, and FR-006 are all covered by at least
+one story. `BEEM-21` (edit project) and the removal/deactivation scenarios in `BEEM-15` don't map
+to a dedicated FR/NFR ID — see `epic-review.md`'s Requirement coverage check.

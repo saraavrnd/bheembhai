@@ -153,14 +153,15 @@ flowchart TB
 ## Data flow
 
 1. A user signs in through the API, which establishes a server session and loads their project-scoped memberships.
-2. An admin creates or edits a project, linking GitHub and Jira providers and selecting active integration providers for the project.
-3. The admin binds a versioned workflow and policy to the project and selects the notification configuration.
-4. A run is created from a source issue key and free-form starting story input. The API pins the workflow version, policy version, notification config version, recipient snapshot, and source issue reference, then records an initial transition and enqueues a `start-run` job.
-5. The worker consumes the job from RabbitMQ, resolves the selected workflow and policy, and launches a disposable executor container with the run, step, attempt, repository, and secret context it needs.
-6. The executor checks out the repository at the pinned commit, runs the agent skill, routes LLM calls through LiteLLM, writes artifacts to Git and/or object storage, publishes the structured result message to RabbitMQ, and exits.
-7. The worker reconciles the result message with runtime status and lease state. A clean success advances to the next step. A policy gate parks the run in `awaiting_approval`. A transient failure retries with a new attempt. A deterministic failure escalates.
-8. If a reviewer chooses `approve`, the worker resumes the parked run. If the reviewer chooses `request_changes`, the workflow routes back to the immediately previous step and creates a new attempt for that step while preserving the review record and the old attempt history.
-9. The worker appends every state transition to the audit log, rolls up cost, and dispatches notifications according to the project notification configuration and run-time recipient snapshot.
+2. An admin creates a project by name (or edits its name later); no tool reference is required or accepted at this point (ADR-008).
+3. Separately, an admin or project manager selects and binds active integration providers per category (GitHub, Jira, or any other configured category) to the project through the integration-binding mechanism, and assigns/removes/deactivates project members and their roles.
+5. The admin binds a versioned workflow and policy to the project and selects the notification configuration.
+6. A run is created from a source issue key and free-form starting story input. The API pins the workflow version, policy version, notification config version, recipient snapshot, and source issue reference, then records an initial transition and enqueues a `start-run` job.
+7. The worker consumes the job from RabbitMQ, resolves the selected workflow and policy, and launches a disposable executor container with the run, step, attempt, repository, and secret context it needs.
+8. The executor checks out the repository at the pinned commit, runs the agent skill, routes LLM calls through LiteLLM, writes artifacts to Git and/or object storage, publishes the structured result message to RabbitMQ, and exits.
+9. The worker reconciles the result message with runtime status and lease state. A clean success advances to the next step. A policy gate parks the run in `awaiting_approval`. A transient failure retries with a new attempt. A deterministic failure escalates.
+10. If a reviewer chooses `approve`, the worker resumes the parked run. If the reviewer chooses `request_changes`, the workflow routes back to the immediately previous step and creates a new attempt for that step while preserving the review record and the old attempt history.
+11. The worker appends every state transition to the audit log, rolls up cost, and dispatches notifications according to the project notification configuration and run-time recipient snapshot.
 
 ## Cross-cutting concerns
 
@@ -171,7 +172,7 @@ flowchart TB
   when the secure-storage adapter reads them back. MinIO stores the encrypted ciphertext, not the
   cleartext secret.
 - All logs and traces carry the run and attempt correlation identifiers so the API, worker, executor, and observability backend can be joined during debugging.
-- The append-only state-transition log is the audit spine. Current state columns exist on run, step, and attempt rows for fast reads, but the log is the immutable history.
+- The append-only state-transition log is the audit spine. Current state columns exist on run, step, and attempt rows for fast reads, but the log is the immutable history. As of ADR-009, membership changes (assign, remove, deactivate) also append to this log (`subject_type = "membership"`), not just run/step/attempt/approval/notification events.
 - Email notifications are based on the project notification configuration captured when the run starts, not on mutable live settings.
 - Configuration is environment-driven, with secrets supplied via environment variables and secure storage references. No integration key is hard-coded.
 
@@ -216,7 +217,7 @@ flowchart TB
 | PostgreSQL | FR-001 to FR-006, FR-021 to FR-055, NFR-007, NFR-008, NFR-010, NFR-013 |
 | Redis | NFR-002, NFR-003, NFR-012, NFR-015 |
 | MinIO | FR-009, FR-010, NFR-004, NFR-006 |
-| Git/GitHub | FR-001, FR-012, FR-038, FR-049, FR-051 |
+| Git/GitHub | FR-012, FR-038, FR-049, FR-051 |
 | Jira adapter | FR-001, FR-004, FR-011, FR-017, FR-020 |
 | Brevo plugin | FR-016, FR-019, FR-048 |
 | LiteLLM | FR-014, FR-052, FR-053, FR-054 |

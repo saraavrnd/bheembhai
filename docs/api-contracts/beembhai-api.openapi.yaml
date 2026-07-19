@@ -9,6 +9,7 @@ servers:
 tags:
   - name: Auth
   - name: Projects
+  - name: Roles
   - name: Integrations
   - name: Config
   - name: Runs
@@ -124,7 +125,7 @@ paths:
                       $ref: "#/components/schemas/Project"
     post:
       tags: [Projects]
-      summary: Create a project with GitHub and Jira linkage
+      summary: Create a project by name
       requestBody:
         required: true
         content:
@@ -205,6 +206,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Membership"
+  /projects/{projectId}/members/{userId}:
+    delete:
+      tags: [Projects]
+      summary: Remove a project membership entirely
+      parameters:
+        - $ref: "#/components/parameters/projectId"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Membership removed
+  /roles:
+    get:
+      tags: [Roles]
+      summary: List the platform-wide project-role catalog
+      responses:
+        "200":
+          description: Role catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProjectRole"
+    post:
+      tags: [Roles]
+      summary: Add a new role to the platform-wide catalog (PLATFORM_ADMIN only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectRoleCreateRequest"
+      responses:
+        "200":
+          description: Role created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectRole"
   /projects/{projectId}/integrations:
     get:
       tags: [Integrations]
@@ -555,17 +603,16 @@ components:
     Project:
       type: object
       required: [id, name]
+      description: >
+        A project holds no tool references of its own as of ADR-008 — GitHub, Jira, and any other
+        integration category are linked exclusively through ProjectIntegrationBinding
+        (see /projects/{projectId}/integrations).
       properties:
         id:
           type: string
           format: uuid
         name:
           type: string
-        githubRepositoryRef:
-          type: string
-        jiraProjectKey:
-          type: string
-          nullable: true
         activeWorkflowVersionId:
           type: string
           format: uuid
@@ -576,28 +623,18 @@ components:
           nullable: true
     ProjectCreateRequest:
       type: object
-      required: [name, githubRepositoryRef]
+      required: [name]
       properties:
         name:
           type: string
-        githubRepositoryRef:
-          type: string
-        jiraProjectKey:
-          type: string
-          nullable: true
     ProjectUpdateRequest:
       type: object
       properties:
         name:
           type: string
-        githubRepositoryRef:
-          type: string
-        jiraProjectKey:
-          type: string
-          nullable: true
     Membership:
       type: object
-      required: [id, projectId, userId, role]
+      required: [id, projectId, userId, role, isActive]
       properties:
         id:
           type: string
@@ -610,7 +647,15 @@ components:
           format: uuid
         role:
           type: string
-          enum: [PROJECT_MANAGER, DEVELOPER, DEVOPS, REVIEWER]
+          description: >
+            A ProjectRole.key from the platform-wide role catalog (see GET /roles). No longer a
+            closed enum as of ADR-007 — validated against the ProjectRole table, not this spec.
+        isActive:
+          type: boolean
+          description: >
+            False means the membership is suspended (row retained, no active project access)
+            rather than removed outright. See ADR-009. Removal is DELETE
+            /projects/{projectId}/members/{userId}, which deletes the row entirely.
     MembershipUpsertRequest:
       type: object
       required: [userId, role]
@@ -620,7 +665,36 @@ components:
           format: uuid
         role:
           type: string
-          enum: [PROJECT_MANAGER, DEVELOPER, DEVOPS, REVIEWER]
+          description: A ProjectRole.key from the platform-wide role catalog (see GET /roles).
+        isActive:
+          type: boolean
+          description: >
+            Defaults to true on first assignment. Set to false to deactivate an existing member
+            without removing them. Whether this endpoint may also be used to set an inactive
+            membership back to true (reactivation) is left open per ADR-009 / BEEM-15's
+            story-design, not decided by this contract.
+    ProjectRole:
+      type: object
+      required: [key, label, isSystemDefault]
+      properties:
+        key:
+          type: string
+          description: Stable identifier used as Membership.role, e.g. PROJECT_MANAGER.
+        label:
+          type: string
+        isSystemDefault:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    ProjectRoleCreateRequest:
+      type: object
+      required: [key, label]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
     ProjectIntegrationBinding:
       type: object
       required: [id, integrationCategoryKey, integrationProviderKey]

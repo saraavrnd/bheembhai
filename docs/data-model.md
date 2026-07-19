@@ -10,8 +10,9 @@ with the approved architecture.
 | Entity | Purpose | Key fields |
 |--------|---------|------------|
 | User | Local identity and authentication subject | id, email, password_hash, platform_role |
-| Project | Governed workspace and approval boundary | id, name, slug, source_repo, source_issue_system |
-| Membership | Project-scoped role mapping | id, user_id, project_id, role |
+| Project | Governed workspace and approval boundary | id, name, slug |
+| Membership | Project-scoped role mapping | id, user_id, project_id, role, is_active |
+| ProjectRole | Platform-wide catalog of assignable project roles | key, label, is_system_default, created_at |
 | IntegrationProvider | Provider catalog entry | id, integration_type, provider_name, config_schema |
 | ProjectIntegrationBinding | Project-selected provider binding | id, project_id, integration_type, provider_id |
 | WorkflowVersion | Versioned workflow definition | id, project_id, version, status |
@@ -29,9 +30,20 @@ with the approved architecture.
 ## Relationships
 
 - A `User` can belong to many `Project`s through `Membership`.
-- A `Project` can bind many integration providers, but only one active binding per integration type.
+- `Membership.role` references `ProjectRole.key` — a platform-wide, extensible catalog rather than
+  a fixed enum, so new roles (e.g. beyond the seeded `PROJECT_MANAGER`, `DEVELOPER`, `DEVOPS`,
+  `REVIEWER`, `BUSINESS_ANALYST`, `ARCHITECT`, `QA`) can be added without a schema change. Only
+  `platform_role = PLATFORM_ADMIN` may add a new `ProjectRole` (see ADR-007).
+- A `Project` holds no tool references of its own — GitHub, Jira, and any other integration
+  category are exclusively linked through `ProjectIntegrationBinding`; a `Project` can bind many
+  integration providers, but only one active binding per integration type (see ADR-008).
+- `Membership.is_active` distinguishes a suspended member (row retained, access revoked) from a
+  removed one (row deleted outright); any check for "does this user have active project access"
+  must test `is_active = true`, not just row existence (see ADR-009).
 - A `Run` belongs to one `Project` and one pinned workflow/policy pair.
 - A `Run` has many `Step`s, each `Step` has many `Attempt`s.
-- `StateTransition` stores the immutable history for runs, steps, attempts, approvals, and notifications.
+- `StateTransition` stores the immutable history for runs, steps, attempts, approvals,
+  notifications, and — as of ADR-009 — membership changes (`subject_type = "membership"`:
+  assign, remove, deactivate).
 - `NotificationSubscription` snapshots the intended recipients when the run starts.
 

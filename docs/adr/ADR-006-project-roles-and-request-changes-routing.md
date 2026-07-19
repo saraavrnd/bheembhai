@@ -1,6 +1,9 @@
 # ADR-006: Project-scoped roles and request-changes routing
 
-**Status:** Accepted · **Date:** 2026-07-10 · **Deciders:** Codex + user approval
+**Status:** Partially superseded by ADR-007 (2026-07-19) — the fixed `Membership.role` enum and
+its "free-form roles rejected" rationale are replaced by an extensible `ProjectRole` catalog. The
+`request_changes` routing decision below is unaffected and still stands. · **Date:** 2026-07-10 ·
+**Deciders:** Codex + user approval
 
 ## Context
 

@@ -55,9 +55,16 @@
     },
     {
       "story_key": "BEEM-15",
-      "summary": "Assign project roles for approvals",
+      "summary": "Manage project membership and roles",
       "requirement_ids": [
         "FR-006"
+      ]
+    },
+    {
+      "story_key": "BEEM-21",
+      "summary": "Edit project details",
+      "requirement_ids": [
+        "FR-001"
       ]
     }
   ]
