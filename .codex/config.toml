@@ -52,9 +52,23 @@ statusMessage = "Recording turn stop"
 # ==========================================
 # Jira MCP Server Configuration
 # ==========================================
+#[mcp_servers.jira]
+#command = "/home/fusiongamingmasterpc/projects/beembhai/development/codebase/bheembhai/scripts/jira_mcp.sh"
+#args = []
+
 [mcp_servers.jira]
-command = "/home/fusiongamingmasterpc/projects/beembhai/development/codebase/bheembhai/scripts/jira_mcp.sh"
-args = []
+command = "uvx"
+args = ["mcp-atlassian"] # Or your preferred Jira MCP package
+env_vars = ["JIRA_URL", "JIRA_USERNAME", "JIRA_API_TOKEN"]
+
+[mcp_servers.jira.tools.jira_create_issue]
+approval_mode = "approve"
+
+[mcp_servers.jira.tools.jira_transition_issue]
+approval_mode = "approve"
+
+[mcp_servers.jira.tools.jira_create_remote_issue_link]
+approval_mode = "approve"
 
 
 # ==========================================
@@ -72,4 +86,19 @@ approval_mode = "approve"
 approval_mode = "approve"
 
 [mcp_servers.github.tools.search_users]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.get_pull_request]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.get_pull_request_status]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.get_pull_request_reviews]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.merge_pull_request]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.create_pull_request]
 approval_mode = "approve"

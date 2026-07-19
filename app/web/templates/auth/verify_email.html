@@ -6,13 +6,6 @@
 {% block auth_body %}
     <div class="auth-card auth-card--verify">
       {% if state == "success" %}
-        <div class="auth-card__status-row">
-          <span class="auth-chip auth-chip--verified">
-            <svg width="14" height="14" aria-hidden="true" class="icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#check"></use></svg>
-            Verified
-          </span>
-        </div>
-
         <div class="auth-verify-mark" aria-hidden="true">
           <span class="auth-verify-mark__ring">
             <svg width="40" height="40" class="auth-verify-mark__icon icon"><use href="{{ url_for('static', path='vendor/feather/feather-sprite.svg') }}#check"></use></svg>
