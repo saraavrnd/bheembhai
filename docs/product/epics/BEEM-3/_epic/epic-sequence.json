@@ -1,44 +1,17 @@
 {
-  "BEEM-17": {
-    "depends_on": [],
-    "wave": 1
-  },
-  "BEEM-14": {
-    "depends_on": [
-      "BEEM-17"
-    ],
-    "wave": 2
-  },
-  "BEEM-16": {
-    "depends_on": [
-      "BEEM-14"
-    ],
-    "wave": 3
-  },
-  "BEEM-12": {
-    "depends_on": [
-      "BEEM-16"
-    ],
-    "wave": 4
-  },
-  "BEEM-13": {
-    "depends_on": [
-      "BEEM-12"
-    ],
-    "wave": 5
-  },
-  "BEEM-15": {
-    "depends_on": [
-      "BEEM-12"
-    ],
-    "wave": 5
-  },
-  "_meta": {
-    "epic_key": "BEEM-3",
-    "provisional": true,
-    "sources": [
-      "docs/product/epics/BEEM-3/_epic/stories.md",
-      "docs/product/epics/BEEM-3/stories/BEEM-16/story-design.md"
-    ]
-  }
+  "epic_key": "BEEM-3",
+  "approved": true,
+  "stories": [
+    { "story_key": "BEEM-17", "title": "Register a local user account", "wave": 1, "depends_on": [], "edge_sources": {} },
+    { "story_key": "BEEM-14", "title": "Sign in, verify email, and reset password", "wave": 2, "depends_on": ["BEEM-17"], "edge_sources": { "BEEM-17": { "source": "artifact", "confidence": "firm" } } },
+    { "story_key": "BEEM-18", "title": "Add browser signup page", "wave": 2, "depends_on": ["BEEM-17"], "edge_sources": { "BEEM-17": { "source": "artifact", "confidence": "firm" } } },
+    { "story_key": "BEEM-16", "title": "Bootstrap initial platform admin", "wave": 3, "depends_on": ["BEEM-14"], "edge_sources": { "BEEM-14": { "source": "artifact", "confidence": "firm" } } },
+    { "story_key": "BEEM-19", "title": "Align authentication screens to approved mockups", "wave": 3, "depends_on": ["BEEM-18", "BEEM-14"], "edge_sources": { "BEEM-18": { "source": "artifact", "confidence": "firm" }, "BEEM-14": { "source": "artifact", "confidence": "firm" } } },
+    { "story_key": "BEEM-12", "title": "Create and list accessible projects", "wave": 4, "depends_on": ["BEEM-16"], "edge_sources": { "BEEM-16": { "source": "artifact", "confidence": "firm" } } },
+    { "story_key": "BEEM-20", "title": "UI FIX: Align authentication screens to approved mockups", "wave": 4, "depends_on": ["BEEM-19"], "edge_sources": { "BEEM-19": { "source": "artifact", "confidence": "firm" } } },
+    { "story_key": "BEEM-13", "title": "Pin workflow-policy pairings", "wave": 5, "depends_on": ["BEEM-16", "BEEM-12"], "edge_sources": { "BEEM-16": { "source": "artifact", "confidence": "firm" }, "BEEM-12": { "source": "acceptance-text", "confidence": "provisional" } } },
+    { "story_key": "BEEM-15", "title": "Manage project membership and roles", "wave": 5, "depends_on": ["BEEM-16", "BEEM-12"], "edge_sources": { "BEEM-16": { "source": "artifact", "confidence": "firm" }, "BEEM-12": { "source": "acceptance-text", "confidence": "provisional" } } },
+    { "story_key": "BEEM-21", "title": "Edit project details", "wave": 5, "depends_on": ["BEEM-16", "BEEM-12"], "edge_sources": { "BEEM-16": { "source": "acceptance-text", "confidence": "provisional" }, "BEEM-12": { "source": "acceptance-text", "confidence": "provisional" } } }
+  ],
+  "cycles": []
 }

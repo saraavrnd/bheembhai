@@ -374,13 +374,18 @@ Depends on the local user registration story and email delivery plumbing from th
 **Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 5 · **Labels:** fa-1, mvp
 
 ### Story
-As a **platform admin or project manager** (`platform_role = PLATFORM_ADMIN`, or `Membership.role = PROJECT_MANAGER` for this project), I want **to assign a project role to a member, remove a member's membership, or mark a membership inactive**, so that **the platform records who holds which role on the project — ready for later approval-eligibility checks — and stays accurate as the team changes**.
+As a **platform admin or project manager** (`platform_role = PLATFORM_ADMIN`, or `Membership.role = PROJECT_MANAGER` for this project), I want **to add a member to the project with a role, change an existing member's role, remove a member's membership, or mark a membership inactive**, so that **the platform records who holds which role on the project — ready for later approval-eligibility checks — and stays accurate as the team changes**.
 
 ### Acceptance Criteria
-**Scenario: Admin or project manager assigns a project role to a member**
-- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project
-- When they assign a `Membership.role` (e.g. Reviewer) to a project member
-- Then the member's membership record is stored with that role
+**Scenario: Admin or project manager adds a new member to the project**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project, and the target user has no existing membership on this project
+- When they assign a `Membership.role` (e.g. Reviewer) to that user via `POST /projects/{projectId}/members`
+- Then a new membership record is created for that user with that role and `isActive = true`
+
+**Scenario: Admin or project manager changes an existing member's role**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project, and the target user already has a membership record on this project
+- When they submit a different `Membership.role` for that user via `POST /projects/{projectId}/members`
+- Then the existing membership record is updated in place with the new role, and no duplicate membership record is created
 
 **Scenario: Admin or project manager removes a member's membership**
 - Given a signed-in user with `platform_role = PLATFORM_ADMIN`, or a `Membership.role = PROJECT_MANAGER` for this project
@@ -401,6 +406,8 @@ Approval-eligibility enforcement (which member can approve a given gated step), 
 
 ### Notes / dependencies
 Depends on project membership from `BEEM-12` and on `BEEM-16` for the first platform admin account. FR-006 ("role-based approval eligibility") is only partly covered here: this story covers *assigning* a role to a member; *honoring* that role during a gated-step approval (eligible/ineligible reviewer, non-member rejection, approval chooser) is out of scope and needs its own story in `BHEEM-8` (Human approvals & stage collaboration) — flagged for that epic's own `user-story`/`epic-review` pass, not resolved here. The assignable `Membership.role` value set is an extensible, platform-wide catalog (`ProjectRole`, see ADR-007) rather than a fixed enum, resolved in the prior `epic-review` pass. **Extended in the 2026-07-19 `epic-review` pass (round 2)** to cover membership removal and deactivation, which the API contract and prior stories didn't support at all (no `DELETE` endpoint, no `isActive` field on `Membership`) — flagged as an architecture item in `epic-review.md` for `tech-design` (amend mode), now resolved by `ADR-009`: `Membership.isActive`, `DELETE /projects/{projectId}/members/{userId}`, and membership changes now append to the `StateTransition` audit log. Reactivation behavior and the last-`PROJECT_MANAGER` safeguard remain open for this story's own `story-design` to confirm (see ADR-009's consequences).
+
+**Upsert-vs-conflict ambiguity resolved (2026-07-19):** `epic-review.md` flagged that the acceptance criteria didn't distinguish "add a new member" from "change an existing member's role," even though `POST /projects/{projectId}/members` is contractually an upsert (`MembershipUpsertRequest`). Resolved by splitting the acceptance criteria above into explicit add-new-member and change-existing-role scenarios: a re-POST for a user who already has a membership updates that row's role in place rather than creating a duplicate or being rejected as a conflict. This does not touch the still-open reactivation/last-`PROJECT_MANAGER` questions noted above.
 
 ---
 Coverage summary: FR-001, FR-002, FR-003, FR-004, FR-005, and FR-006 are all covered by at least
