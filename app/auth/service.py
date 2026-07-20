@@ -96,7 +96,25 @@ class AuthService:
             raise ValueError("invalid credentials")
         if user.email_verified_at is None:
             raise PermissionError("email address is not verified")
+        if not user.is_active:
+            raise PermissionError("account is deactivated")
         return user
+
+    def deactivate_user(self, *, email: str) -> UserRecord:
+        return self._set_active(email=email, is_active=False)
+
+    def activate_user(self, *, email: str) -> UserRecord:
+        return self._set_active(email=email, is_active=True)
+
+    def _set_active(self, *, email: str, is_active: bool) -> UserRecord:
+        normalized_email = self._normalize_email(email)
+        user = self.repository.find_by_email(normalized_email)
+        if user is None:
+            raise LookupError(f"user not found: {email}")
+        return self.repository.update_user(
+            user.id,
+            is_active=is_active,
+        )
 
     def register_user(
         self,
@@ -145,7 +163,9 @@ class AuthService:
             verification_email_sent=True,
         )
 
-    def bootstrap_platform_admin(self, *, email: str, password: str) -> UserMutationResult:
+    def bootstrap_platform_admin(
+        self, *, email: str, password: str, verified: bool = False
+    ) -> UserMutationResult:
         normalized_email = self._normalize_email(email)
         password_hash = self.password_hasher.hash(password)
 
@@ -163,18 +183,19 @@ class AuthService:
                 email=normalized_email,
                 password_hash=password_hash,
                 platform_role=ADMIN_ROLE,
-                email_verified_at=None,
+                email_verified_at=datetime.now(UTC) if verified else None,
             )
-            token = self.token_service.create_email_verification_token(
-                user_id=user.id,
-                email=user.email,
-            )
-            self._send_verification_email(user, token)
+            if not verified:
+                token = self.token_service.create_email_verification_token(
+                    user_id=user.id,
+                    email=user.email,
+                )
+                self._send_verification_email(user, token)
 
         return UserMutationResult(
             user=user,
             action="created",
-            verification_email_sent=True,
+            verification_email_sent=not verified,
         )
 
     def request_email_verification(self, email: str) -> bool:

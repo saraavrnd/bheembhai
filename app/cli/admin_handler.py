@@ -19,6 +19,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     bootstrap_parser.add_argument("--email", required=True, help="Platform admin email address")
     bootstrap_parser.add_argument("--password", required=True, help="Platform admin password")
+    bootstrap_parser.add_argument(
+        "--verified",
+        action="store_true",
+        help=(
+            "Mark the created admin's email as already verified and skip sending the "
+            "verification email (for automated/non-interactive bootstrapping, e.g. test "
+            "and CI environments)"
+        ),
+    )
 
     upsert_parser = subparsers.add_parser(
         "upsert-user",
@@ -32,7 +41,36 @@ def build_parser() -> argparse.ArgumentParser:
         default=STANDARD_ROLE,
         help="Platform role to apply",
     )
+
+    deactivate_parser = subparsers.add_parser(
+        "deactivate-user",
+        help="Deactivate a user so they can no longer authenticate",
+    )
+    deactivate_parser.add_argument("--email", required=True, help="User email address")
+
+    activate_parser = subparsers.add_parser(
+        "activate-user",
+        help="Re-activate a previously deactivated user",
+    )
+    activate_parser.add_argument("--email", required=True, help="User email address")
     return parser
+
+
+def _print_user_action(command: str, action: str, user: object) -> None:
+    print(
+        json.dumps(
+            {
+                "command": command,
+                "action": action,
+                "skipped_reason": None,
+                "verification_email_sent": False,
+                "user": asdict(user),
+            },
+            indent=2,
+            sort_keys=True,
+            default=str,
+        )
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -42,13 +80,23 @@ def main(argv: list[str] | None = None) -> int:
     service = build_auth_service(settings)
 
     if args.command == "bootstrap-admin":
-        result = service.bootstrap_platform_admin(email=args.email, password=args.password)
+        result = service.bootstrap_platform_admin(
+            email=args.email, password=args.password, verified=args.verified
+        )
     elif args.command == "upsert-user":
         result = service.upsert_user(
             email=args.email,
             password=args.password,
             platform_role=args.role,
         )
+    elif args.command == "deactivate-user":
+        user = service.deactivate_user(email=args.email)
+        _print_user_action(args.command, "deactivated", user)
+        return 0
+    elif args.command == "activate-user":
+        user = service.activate_user(email=args.email)
+        _print_user_action(args.command, "activated", user)
+        return 0
     else:  # pragma: no cover - argparse guarantees this branch is unreachable.
         parser.error(f"unsupported command: {args.command}")
 

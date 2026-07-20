@@ -14,6 +14,7 @@ if str(BASE_DIR) not in sys.path:
 
 from app.auth.repository import User  # noqa: E402,F401
 from app.core.db import Base  # noqa: E402
+from app.projects.repository import Membership, Project  # noqa: E402,F401
 
 config = context.config
 
