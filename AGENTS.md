@@ -9,11 +9,14 @@ software delivery lifecycle, starting with a story-to-PR workflow. The MVP focus
 orchestrated, policy-governed, auditable runs with isolated execution, stage-by-stage approvals,
 and artifact persistence in Git.
 
-**Current state: scaffold only.** Every module under `app/` is an empty stub (a router with zero
-routes, or an interface with only a connectivity check implemented). `app/main.py`'s `/health`
-and `/` routes are the only working request handlers — they exist to prove Postgres/Redis/object-
-storage/secure-storage wiring, not as a feature. Implementing a story means filling in the
-relevant module, not creating new top-level structure.
+**Current state: partially implemented.** `app/auth/` (registration, login/session, email
+verification, password reset, platform-admin bootstrap) and `app/projects/` (create a project by
+name, list projects accessible to the signed-in user — platform admins see all, others see active
+memberships only) are real, tested modules backed by Postgres via SQLAlchemy + Alembic
+migrations. Every other module under `app/` (`integrations`, `runs`, `approvals`, `config`,
+`notifications`) is still an empty stub (a router with zero routes, or an interface with only a
+connectivity check implemented). Implementing a story means filling in the relevant module, not
+creating new top-level structure.
 
 ## Project Layout
 

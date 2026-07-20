@@ -24,3 +24,13 @@
 ## 2026-07-18
 
 - Recorded BEEM-20: vendored real Bootstrap 5.3.3 (`app/web/static/vendor/bootstrap/bootstrap.min.css`) and the feather-icons sprite (`app/web/static/vendor/feather/feather-sprite.svg`) — the first concrete instance of the theme adoption `docs/ui-conventions.md` had only described. Scope limited to the 4 auth screens; `ui-conventions.md` updated to note the actual vendored Bootstrap version (5.3.3, not 5.3.8) and that the fuller theme asset set (`style.css`, `vendors_css.css`, `skin_color.css`, `template.js`) remains deferred to the future authenticated-dashboard-shell story.
+
+## 2026-07-20
+
+- Recorded BEEM-12: `GET`/`POST /projects` implemented exactly to the already-committed
+  `Project`/`ProjectCreateRequest` contract in `docs/api-contracts/beembhai-api.openapi.yaml` and
+  the `Project`/`Membership` entities already named in `docs/data-model.md` — no system-level
+  change, this story is simply the first to give those two entities a concrete Postgres
+  persistence path (SQLAlchemy models + an Alembic migration, mirroring the `users` table
+  pattern). `AGENTS.md`'s "current state" note updated: `app/auth/` and `app/projects/` are no
+  longer stubs.
