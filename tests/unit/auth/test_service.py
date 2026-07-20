@@ -111,6 +111,23 @@ def test_bootstrap_creates_first_platform_admin_and_sends_activation_email() -> 
     assert "verify-email#token=" in email_sender.messages[0].text_content
 
 
+def test_bootstrap_with_verified_flag_skips_verification_email() -> None:
+    service, repository, email_sender = build_service()
+
+    result = service.bootstrap_platform_admin(
+        email="admin@example.com",
+        password="SeedPassword123!",
+        verified=True,
+    )
+
+    stored = repository.find_by_email("admin@example.com")
+    assert result.action == "created"
+    assert result.verification_email_sent is False
+    assert stored is not None
+    assert stored.email_verified_at is not None
+    assert len(email_sender.messages) == 0
+
+
 def test_bootstrap_is_idempotent_when_admin_already_exists() -> None:
     service, repository, email_sender = build_service()
     repository.create_user(
@@ -308,6 +325,97 @@ def test_authenticate_user_rejects_invalid_password() -> None:
             email="member@example.com",
             password="wrong-password",
         )
+
+
+def test_authenticate_user_rejects_deactivated_account() -> None:
+    service, repository, _ = build_service()
+    repository.create_user(
+        email="member@example.com",
+        password_hash="hashed::LoginPassword123!",
+        platform_role=STANDARD_ROLE,
+        email_verified_at=datetime.now(UTC),
+    )
+    service.deactivate_user(email="member@example.com")
+
+    with pytest.raises(PermissionError, match="deactivated"):
+        service.authenticate_user(
+            email="member@example.com",
+            password="LoginPassword123!",
+        )
+
+
+def test_deactivate_user_sets_is_active_false() -> None:
+    service, repository, _ = build_service()
+    repository.create_user(
+        email="member@example.com",
+        password_hash="hashed::LoginPassword123!",
+        platform_role=STANDARD_ROLE,
+        email_verified_at=datetime.now(UTC),
+    )
+
+    result = service.deactivate_user(email="  MEMBER@example.com ")
+
+    assert result.is_active is False
+    stored = repository.find_by_email("member@example.com")
+    assert stored is not None
+    assert stored.is_active is False
+
+
+def test_deactivate_user_raises_for_unknown_email() -> None:
+    service, _, _ = build_service()
+
+    with pytest.raises(LookupError):
+        service.deactivate_user(email="missing@example.com")
+
+
+def test_activate_user_sets_is_active_true_and_restores_login() -> None:
+    service, repository, _ = build_service()
+    repository.create_user(
+        email="member@example.com",
+        password_hash="hashed::LoginPassword123!",
+        platform_role=STANDARD_ROLE,
+        email_verified_at=datetime.now(UTC),
+    )
+    service.deactivate_user(email="member@example.com")
+
+    result = service.activate_user(email="member@example.com")
+
+    assert result.is_active is True
+    authenticated = service.authenticate_user(
+        email="member@example.com",
+        password="LoginPassword123!",
+    )
+    assert authenticated.is_active is True
+
+
+def test_activate_user_raises_for_unknown_email() -> None:
+    service, _, _ = build_service()
+
+    with pytest.raises(LookupError):
+        service.activate_user(email="missing@example.com")
+
+
+def test_bootstrap_creates_new_admin_after_previous_admin_deactivated() -> None:
+    service, repository, _ = build_service()
+    first = service.bootstrap_platform_admin(
+        email="admin@example.com",
+        password="SeedPassword123!",
+        verified=True,
+    )
+    assert first.action == "created"
+    service.deactivate_user(email="admin@example.com")
+
+    second = service.bootstrap_platform_admin(
+        email="new-admin@example.com",
+        password="SeedPassword123!",
+        verified=True,
+    )
+
+    assert second.action == "created"
+    assert second.user.email == "new-admin@example.com"
+    stored = repository.find_by_email("new-admin@example.com")
+    assert stored is not None
+    assert stored.platform_role == ADMIN_ROLE
 
 
 def test_email_verification_request_and_confirmation_activate_user() -> None:

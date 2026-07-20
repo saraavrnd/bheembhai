@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import DateTime, String, func, select
+from sqlalchemy import Boolean, DateTime, String, func, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, Session, mapped_column, sessionmaker
 
@@ -27,6 +27,7 @@ class User(Base):
     email_verified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -42,6 +43,7 @@ class UserRecord:
     password_hash: str
     platform_role: str
     email_verified_at: datetime | None
+    is_active: bool = True
 
 
 @dataclass(slots=True)
@@ -93,7 +95,7 @@ class SqlAlchemyUserRepository:
     def find_first_admin_in_session(self, session: Session) -> UserRecord | None:
         user = session.execute(
             select(User)
-            .where(User.platform_role == ADMIN_ROLE)
+            .where(User.platform_role == ADMIN_ROLE, User.is_active.is_(True))
             .order_by(User.created_at.asc())
             .limit(1)
         ).scalar_one_or_none()
@@ -124,6 +126,7 @@ class SqlAlchemyUserRepository:
         password_hash: str | None = None,
         platform_role: str | None = None,
         email_verified_at: datetime | object = _UNSET,
+        is_active: bool | object = _UNSET,
     ) -> UserRecord:
         with self.session_scope() as session:
             return self.update_user_in_session(
@@ -133,6 +136,7 @@ class SqlAlchemyUserRepository:
                 password_hash=password_hash,
                 platform_role=platform_role,
                 email_verified_at=email_verified_at,
+                is_active=is_active,
             )
 
     def create_user_in_session(
@@ -164,6 +168,7 @@ class SqlAlchemyUserRepository:
         password_hash: str | None = None,
         platform_role: str | None = None,
         email_verified_at: datetime | object = _UNSET,
+        is_active: bool | object = _UNSET,
     ) -> UserRecord:
         user = session.get(User, user_id)
         if user is None:
@@ -177,6 +182,8 @@ class SqlAlchemyUserRepository:
             user.platform_role = platform_role
         if email_verified_at is not _UNSET:
             user.email_verified_at = email_verified_at  # type: ignore[assignment]
+        if is_active is not _UNSET:
+            user.is_active = is_active  # type: ignore[assignment]
 
         session.flush()
         session.refresh(user)
@@ -196,4 +203,5 @@ class SqlAlchemyUserRepository:
             password_hash=user.password_hash,
             platform_role=user.platform_role,
             email_verified_at=user.email_verified_at,
+            is_active=user.is_active,
         )
