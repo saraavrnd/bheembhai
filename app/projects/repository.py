@@ -93,11 +93,6 @@ class SqlAlchemyProjectRepository:
                 session.rollback()
                 raise
 
-    def find_by_id(self, project_id: str) -> ProjectRecord | None:
-        with self.session_factory() as session:
-            project = session.get(Project, project_id)
-            return self._to_record(project) if project is not None else None
-
     def list_all(self) -> list[ProjectRecord]:
         with self.session_factory() as session:
             return self.list_all_in_session(session)
@@ -157,6 +152,9 @@ class SqlAlchemyProjectRepository:
         return self._to_membership_record(membership)
 
     def _unique_slug_in_session(self, session: Session, name: str) -> str:
+        # Check-then-insert is not atomic: a concurrent create with the same name can pass this
+        # check before either commits. That's fine — the DB unique constraint on `slug` is the
+        # real guard, and the router maps the resulting IntegrityError to a 409 for the loser.
         base_slug = _SLUG_INVALID_CHARS.sub("-", name.strip().lower()).strip("-") or "project"
         slug = base_slug
         suffix = 1

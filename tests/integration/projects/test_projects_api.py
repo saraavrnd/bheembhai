@@ -102,6 +102,30 @@ def test_create_project_endpoint_rejects_missing_name(deployed_api: str) -> None
     assert len(project_repository.list_all()) == before_count
 
 
+def test_create_project_endpoint_rejects_whitespace_only_name(deployed_api: str) -> None:
+    project_repository = build_project_repository()
+    admin, password = create_verified_user(build_user_repository(), platform_role=ADMIN_ROLE)
+    client = login(deployed_api, email=admin.email, password=password)
+    before_count = len(project_repository.list_all())
+
+    response = client.post("/api/v1/projects", json={"name": "   "})
+
+    assert response.status_code == 422
+    assert len(project_repository.list_all()) == before_count
+
+
+def test_create_project_endpoint_rejects_name_exceeding_max_length(deployed_api: str) -> None:
+    project_repository = build_project_repository()
+    admin, password = create_verified_user(build_user_repository(), platform_role=ADMIN_ROLE)
+    client = login(deployed_api, email=admin.email, password=password)
+    before_count = len(project_repository.list_all())
+
+    response = client.post("/api/v1/projects", json={"name": "A" * 256})
+
+    assert response.status_code == 422
+    assert len(project_repository.list_all()) == before_count
+
+
 def test_list_projects_endpoint_returns_only_accessible_projects(deployed_api: str) -> None:
     project_repository = build_project_repository()
     member, member_password = create_verified_user(

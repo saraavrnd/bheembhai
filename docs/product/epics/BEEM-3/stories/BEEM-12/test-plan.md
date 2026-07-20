@@ -8,6 +8,8 @@
 | 1 | Admin creates a project with just a name | unit | `tests/unit/projects/test_project_service.py::test_create_project_by_admin_persists_project_with_name_and_no_bindings` | happy |
 | 1 | Admin creates a project with just a name | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_returns_201_and_persists_project_for_admin` | happy |
 | 2 | Missing name is rejected | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_missing_name` | unhappy |
+| 2 | Missing name is rejected | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_whitespace_only_name` | unhappy |
+| 2 | Missing name is rejected | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_name_exceeding_max_length` | unhappy |
 | 3 | Signed-in user sees accessible projects | unit | `tests/unit/projects/test_project_service.py::test_list_accessible_projects_admin_sees_all_projects` | happy |
 | 3 | Signed-in user sees accessible projects | unit | `tests/unit/projects/test_project_service.py::test_list_accessible_projects_member_sees_only_active_memberships` | happy |
 | 3 | Signed-in user sees accessible projects | integration | `tests/integration/projects/test_projects_api.py::test_list_projects_endpoint_returns_only_accessible_projects` | happy |
@@ -64,6 +66,12 @@ The integration collection failure happens before the `deployed_api` fixture (Do
 stack) is invoked, since pytest fails at import time — so no stack was brought up for this red
 run. `implement`/`test-verify` will exercise the integration suite against the real deployed stack
 once `app/projects/repository.py` and `app/projects/service.py` exist.
+
+## Review-driven additions
+`code-review.md` flagged two edge cases in "missing name is rejected" that the original test-plan
+didn't cover: a whitespace-only name, and a name exceeding the `projects.name` column's 255-char
+limit. Both are now covered by dedicated tests (see scenario 2 rows above) added alongside the
+`implement` fixes for those findings.
 
 ## Traceability
 **Requirements covered:** FR-001, FR-002
