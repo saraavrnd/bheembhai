@@ -1,6 +1,12 @@
 # Verification — BEEM-12: Create and list accessible projects
 
-**Verdict:** PASS · **Branch:** `feat/BEEM-12-create-and-list-projects` · **Date:** 2026-07-20
+**Verdict:** PASS (re-verified after code-review fixes) · **Branch:** `feat/BEEM-12-create-and-list-projects` · **Date:** 2026-07-20
+
+> Re-run after `code-review.md`'s 5 findings (1 High, 2 Medium, 2 Low — all accepted and fixed):
+> Alembic migration added for `projects`/`memberships`, blank/whitespace and oversized `name`
+> now rejected with `422`, unused `find_by_id` dropped, slug-race comment added. Two new
+> regression tests cover the previously-uncovered whitespace/oversized-name edge cases. See
+> commit `158644b`.
 
 ## Suite, lint, coverage
 ### Commands
@@ -21,14 +27,14 @@ temporarily moved aside (`.env.local-backup`) so the harness could generate its 
 `.env`, and restored the original `.env` immediately after. No repo files were changed by this
 workaround.
 
-### Test suite output
+### Test suite output (re-run after code-review fixes)
 ```
 ============================= test session starts ==============================
 platform linux -- Python 3.13.13, pytest-9.1.1, pluggy-1.6.0
 rootdir: /home/fusiongamingmasterpc/projects/beembhai/development/codebase/bheembhai
 configfile: pyproject.toml
 testpaths: tests
-collecting ... collected 97 items
+collecting ... collected 99 items
 
 tests/e2e/... (30 tests) PASSED
 tests/integration/auth/test_auth_login.py::test_login_endpoint_sets_session_and_me_returns_current_user PASSED
@@ -43,6 +49,8 @@ tests/integration/projects/test_projects_api.py::test_create_project_endpoint_re
 tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_non_admin PASSED
 tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_unauthenticated_request PASSED
 tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_missing_name PASSED
+tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_whitespace_only_name PASSED
+tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_name_exceeding_max_length PASSED
 tests/integration/projects/test_projects_api.py::test_list_projects_endpoint_returns_only_accessible_projects PASSED
 tests/integration/projects/test_projects_api.py::test_list_projects_endpoint_rejects_unauthenticated_request PASSED
 tests/unit/auth/test_service.py:: (11 tests) PASSED
@@ -62,11 +70,16 @@ tests/unit/web/test_login.py:: (4 tests) PASSED
 tests/unit/web/test_signup.py:: (4 tests) PASSED
 tests/unit/web/test_verify_email.py:: (8 tests) PASSED
 
-====================== 97 passed, 139 warnings in 47.65s =======================
+====================== 99 passed, 139 warnings in 48.06s =======================
 ```
-(Full untruncated capture retained at
-`/tmp/claude-1000/.../scratchpad/pytest_full_output.txt` for this run; warnings are pre-existing
-FastAPI `on_event` deprecation notices, unrelated to this story.)
+99 = the original 97 plus the 2 new regression tests added for the code-review-driven fixes
+(`test_create_project_endpoint_rejects_whitespace_only_name`,
+`test_create_project_endpoint_rejects_name_exceeding_max_length`). Same `.env`-mismatch
+workaround as the first run was used (moved aside, restored immediately after); no repo files
+changed by it. The `api` container only starts after the `migrate` service completes
+successfully (`docker-compose.yml`'s `service_completed_successfully` dependency), so this green
+run also confirms the new Alembic migration
+(`migrations/versions/20260720_0001_create_projects_and_memberships_tables.py`) applies cleanly.
 
 - [x] Full test suite green
 - [x] Lint clean
@@ -88,12 +101,13 @@ Would reformat: tests/integration/auth/test_register.py
 ```
 `git diff origin/main -- <those 6 files>` is empty — none were touched by this story; this is
 pre-existing format debt on `main`, not a BEEM-12 regression. All files this story added or
-changed (`app/projects/repository.py`, `app/projects/service.py`, `app/projects/router.py`,
-`app/main.py`, `tests/unit/projects/test_project_service.py`,
-`tests/integration/projects/test_projects_api.py`) are format-clean, verified separately:
+changed, including the code-review fix commit, are format-clean, verified separately:
 ```
-$ uv run ruff format --check app/projects tests/unit/projects tests/integration/projects app/main.py
-7 files already formatted
+$ uv run ruff check app/projects migrations tests/integration/projects
+All checks passed!
+
+$ uv run ruff format --check app/projects migrations tests/integration/projects
+8 files already formatted
 ```
 
 ### Coverage output
@@ -105,7 +119,7 @@ a percentage). See "Acceptance-scenario coverage" below in place of a numeric ga
 | Scenario | Test exists & runs | Unhappy path |
 |----------|--------------------|--------------|
 | 1. Admin creates a project with just a name | `tests/unit/projects/test_project_service.py::test_create_project_by_admin_persists_project_with_name_and_no_bindings`, `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_returns_201_and_persists_project_for_admin` — both PASSED | happy |
-| 2. Missing name is rejected | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_missing_name` — PASSED | ✓ |
+| 2. Missing name is rejected | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_missing_name`, `::test_create_project_endpoint_rejects_whitespace_only_name`, `::test_create_project_endpoint_rejects_name_exceeding_max_length` — all PASSED (the latter two added as code-review-driven regression tests) | ✓ |
 | 3. Signed-in user sees accessible projects | `tests/unit/projects/test_project_service.py::test_list_accessible_projects_admin_sees_all_projects`, `::test_list_accessible_projects_member_sees_only_active_memberships`, `tests/integration/projects/test_projects_api.py::test_list_projects_endpoint_returns_only_accessible_projects` — all PASSED | happy |
 | 4. Unauthorized project stays hidden | Covered by the `hidden_project` assertions inside `test_list_accessible_projects_member_sees_only_active_memberships` and `test_list_projects_endpoint_returns_only_accessible_projects` — both PASSED | ✓ |
 | 5*. Non-admin cannot create a project | `tests/unit/projects/test_project_service.py::test_create_project_rejects_non_admin_actor`, `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_non_admin` — both PASSED | ✓ |
@@ -118,30 +132,37 @@ requirement, per `test-plan.md`.
 - [x] Unhappy paths present
 
 ## Faked-green inspection
-- [x] No tests skipped/xfail/disabled/deleted vs the test-plan — `grep -rn "skip\|xfail\|pytest.mark"
+- [x] No tests skipped/xfail/disabled/deleted vs the test-plan — `grep -rn "skip\|xfail"
   tests/unit/projects/ tests/integration/projects/` returns nothing.
-- [x] No assertions loosened/removed vs acceptance criteria — `git diff 5eb94eb --
-  tests/unit/projects/ tests/integration/projects/` shows only a 100%-similarity file rename
-  (`test_service.py` → `test_project_service.py`, done to avoid a pytest module-name collision
-  with the pre-existing `tests/unit/auth/test_service.py` under this repo's non-package test
-  layout); zero content changes since test-creator wrote the tests.
+- [x] No assertions loosened/removed vs acceptance criteria — `git diff 0926e96 HEAD --
+  tests/integration/projects/test_projects_api.py` shows only two new test functions appended
+  (the whitespace-only-name and oversized-name regressions); every existing test and assertion is
+  untouched.
 - [x] No production special-casing of test inputs — `ProjectService.create_project` /
   `list_accessible_projects` branch only on `actor.platform_role`, not on any test-specific value;
-  `SqlAlchemyProjectRepository` writes to real `projects`/`memberships` Postgres tables via
-  SQLAlchemy, no shim.
+  the new `_name_must_not_be_blank` validator and `max_length=255` in
+  `app/projects/router.py` apply uniformly to every request, not just test payloads.
 - [x] No swallowed errors hiding unhappy-path behaviour — `PermissionError` and `IntegrityError`
-  are translated to HTTP 403/409 explicitly in `app/projects/router.py`; FastAPI's own validation
-  (422) handles the missing-name case; auth (401) comes from the reused `_current_user` in
-  `app/auth/router.py`.
+  are translated to HTTP 403/409 explicitly in `app/projects/router.py`; Pydantic validation (422)
+  now also covers blank/whitespace and oversized names, not just the omitted-field case; auth
+  (401) comes from the reused `_current_user` in `app/auth/router.py`.
+- [x] Code-review fixes are real fixes, not test-only patches — the High finding (missing Alembic
+  migration) added actual schema-management code (`migrations/versions/20260720_0001_*.py`,
+  `migrations/env.py` model registration), not a test workaround; the Mediums changed production
+  validation logic in `app/projects/router.py`, each backed by a new failing-then-passing test.
 
 ## Regression & design
-- [x] Pre-existing suite still passes — all 87 non-BEEM-12 tests in the 97-test run pass, matching
-  the state before this story (auth/web/e2e/core/cli/tooling/secure_storage all green).
-- [x] Code in the module(s) from the story-design note — `app/projects/repository.py`,
-  `app/projects/service.py`, `app/projects/router.py`, and the `_startup_project_service` wiring
-  in `app/main.py`, exactly as named in `story-design.md`. No new service/integration/cross-cutting
-  concern was introduced. `git diff --stat origin/main -- app/projects app/main.py` shows only
-  those 4 files touched.
+- [x] Pre-existing suite still passes — all 87 non-BEEM-12 tests from the original run, plus the
+  10 BEEM-12 tests from the first pass, all still pass in the 99-test re-run (auth/web/e2e/core/
+  cli/tooling/secure_storage all green, zero regressions from the fix commit).
+- [x] Code in the module(s) from the story-design note, plus the migration convention the review
+  correctly identified as missing — `app/projects/repository.py`, `app/projects/service.py`,
+  `app/projects/router.py`, `app/main.py`'s `_startup_project_service` wiring, and
+  `migrations/versions/20260720_0001_create_projects_and_memberships_tables.py` (mirroring the
+  existing `20260711_0001_create_users_table.py` pattern, not a new architectural concern — this
+  repo already uses Alembic as its schema-migration tool via the `migrate` compose service).
+  `git diff --stat origin/main -- app/projects tests/unit/projects tests/integration/projects
+  app/main.py migrations` shows exactly those files touched, no unplanned scope.
 
 ## If BLOCK — issues to fix
 None. No blocking issues found.
