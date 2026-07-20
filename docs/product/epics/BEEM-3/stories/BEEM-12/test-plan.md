@@ -5,15 +5,15 @@
 ## Scenario → test mapping
 | # | Acceptance scenario | Layer | Test file::test name | Type |
 |---|---------------------|-------|----------------------|------|
-| 1 | Admin creates a project with just a name | unit | `tests/unit/projects/test_service.py::test_create_project_by_admin_persists_project_with_name_and_no_bindings` | happy |
+| 1 | Admin creates a project with just a name | unit | `tests/unit/projects/test_project_service.py::test_create_project_by_admin_persists_project_with_name_and_no_bindings` | happy |
 | 1 | Admin creates a project with just a name | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_returns_201_and_persists_project_for_admin` | happy |
 | 2 | Missing name is rejected | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_missing_name` | unhappy |
-| 3 | Signed-in user sees accessible projects | unit | `tests/unit/projects/test_service.py::test_list_accessible_projects_admin_sees_all_projects` | happy |
-| 3 | Signed-in user sees accessible projects | unit | `tests/unit/projects/test_service.py::test_list_accessible_projects_member_sees_only_active_memberships` | happy |
+| 3 | Signed-in user sees accessible projects | unit | `tests/unit/projects/test_project_service.py::test_list_accessible_projects_admin_sees_all_projects` | happy |
+| 3 | Signed-in user sees accessible projects | unit | `tests/unit/projects/test_project_service.py::test_list_accessible_projects_member_sees_only_active_memberships` | happy |
 | 3 | Signed-in user sees accessible projects | integration | `tests/integration/projects/test_projects_api.py::test_list_projects_endpoint_returns_only_accessible_projects` | happy |
-| 4 | Unauthorized project stays hidden | unit | `tests/unit/projects/test_service.py::test_list_accessible_projects_member_sees_only_active_memberships` (`hidden_project` assertion) | unhappy |
+| 4 | Unauthorized project stays hidden | unit | `tests/unit/projects/test_project_service.py::test_list_accessible_projects_member_sees_only_active_memberships` (`hidden_project` assertion) | unhappy |
 | 4 | Unauthorized project stays hidden | integration | `tests/integration/projects/test_projects_api.py::test_list_projects_endpoint_returns_only_accessible_projects` (`hidden_project` assertion) | unhappy |
-| 5* | Non-admin cannot create a project | unit | `tests/unit/projects/test_service.py::test_create_project_rejects_non_admin_actor` | unhappy |
+| 5* | Non-admin cannot create a project | unit | `tests/unit/projects/test_project_service.py::test_create_project_rejects_non_admin_actor` | unhappy |
 | 5* | Non-admin cannot create a project | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_non_admin` | unhappy |
 | 6* | Unauthenticated requests are rejected | integration | `tests/integration/projects/test_projects_api.py::test_create_project_endpoint_rejects_unauthenticated_request` | unhappy |
 | 6* | Unauthenticated requests are rejected | integration | `tests/integration/projects/test_projects_api.py::test_list_projects_endpoint_rejects_unauthenticated_request` | unhappy |
@@ -43,10 +43,10 @@ scaffold's known-good harness.
 ```
 $ uv run pytest tests/unit/projects/ -v
 ...
-ERROR tests/unit/projects/test_service.py
+ERROR tests/unit/projects/test_project_service.py
 E   ModuleNotFoundError: No module named 'app.projects.repository'
 =========================== short test summary info ============================
-ERROR tests/unit/projects/test_service.py
+ERROR tests/unit/projects/test_project_service.py
 !!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
 =============================== 1 error in 0.12s ===============================
 

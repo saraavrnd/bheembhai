@@ -16,6 +16,7 @@ from app.core.settings import get_settings
 from app.integrations.router import router as integrations_router
 from app.notifications.router import router as notifications_router
 from app.projects.router import router as projects_router
+from app.projects.service import build_project_service
 from app.runs.router import router as runs_router
 from app.web.router import build_browser_auth_service
 from app.web.router import router as web_router
@@ -72,6 +73,10 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     def _startup_browser_auth_service() -> None:
         app.state.browser_auth_service = build_browser_auth_service(settings)
+
+    @app.on_event("startup")
+    def _startup_project_service() -> None:
+        app.state.project_service = build_project_service(settings)
 
     @app.get("/health", include_in_schema=False)
     async def health() -> dict[str, str]:
