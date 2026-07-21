@@ -66,6 +66,19 @@
       "requirement_ids": [
         "FR-001"
       ]
+    },
+    {
+      "story_key": "BEEM-23",
+      "summary": "Land on authenticated landing page after login",
+      "requirement_ids": []
+    },
+    {
+      "story_key": "BEEM-22",
+      "summary": "Add project list and create-project widget to the landing page",
+      "requirement_ids": [
+        "FR-001",
+        "FR-002"
+      ]
     }
   ]
 }

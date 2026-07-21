@@ -240,6 +240,132 @@ authority and is flagged, not done here.
 
 ---
 
+## STORY: Land on authenticated Setup Dashboard after login  (BEEM-23)
+**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 2 · **Labels:** fa-1, frontend, mvp
+
+### Story
+As a **signed-in user**, I want **to be taken to an authenticated "Setup Dashboard" immediately
+after I sign in, with a sidebar entry point to my projects**, so that **I land on a single home
+base for the platform instead of the public marketing page**.
+
+Reference: the attached mockup (the "Platform Overview" design) is the long-term target for this
+dashboard. Today only Projects (and auth) are real — Users & Roles, Policies, Integrations, Audit
+Logs, Workflows, and Activity Monitor are unbuilt stubs owned by other epics. This story
+implements only the real subset; the rest is explicitly out of scope until those epics land.
+
+### Acceptance Criteria
+**Scenario: Successful sign-in redirects to the Setup Dashboard**
+- Given a user submits valid sign-in credentials
+- When the sign-in succeeds
+- Then the browser is redirected to the Setup Dashboard instead of the public home page
+
+**Scenario: Dashboard requires authentication**
+- Given a visitor is not signed in
+- When they request the dashboard URL directly
+- Then they are redirected to the sign-in page and the dashboard content is not rendered
+
+**Scenario: Dashboard shows a live Projects entry point**
+- Given a signed-in user has access to N projects
+- When they open the dashboard
+- Then a "Projects" sidebar link and/or stat card is shown with a count of N, and selecting it
+  navigates to the Projects page (`BEEM-22`)
+
+**Scenario: Zero-projects state renders correctly**
+- Given a signed-in user has access to zero projects
+- When they open the dashboard
+- Then the Projects entry shows a count of 0 without erroring
+
+**Scenario: No dead links for unbuilt entities**
+- Given any signed-in user opens the dashboard
+- When the page renders
+- Then no sidebar item, stat card, or panel is shown for entities that don't exist yet
+  (Users & Roles, Policies, Integrations, Audit Logs, Workflows, Activity Monitor, Settings)
+
+### Covered requirements
+None directly — this story is the authenticated navigation shell that hosts the entry point to
+`BEEM-22`'s Projects page. FR-001 and FR-002 remain owned by `BEEM-12` (API) and `BEEM-22` (page).
+
+### Out of scope
+The create-project control and project list itself (`BEEM-22`'s scope, its own page rather than
+embedded here). The rich dashboard content shown in the mockup — stat cards for
+Users/Integrations/Workflows/Policies/Audit Logs, the Workflows panel, Recent Activity feed, and
+Platform Metrics — since none of that data exists yet; deferred until those epics (`BHEEM-4`
+through `BHEEM-10`, `BEEM-15`) ship. Role-based hiding beyond auth: the Projects entry is visible
+to every signed-in user (per FR-002), so no admin-only gating exists on this page itself.
+
+### Notes / dependencies
+Depends on `BEEM-14`/`BEEM-16` (sign-in flow) for the redirect target. `BEEM-22` depends on this
+shell for its sidebar entry point — sequence this story before `BEEM-22`. When later epics
+deliver Users & Roles, Policies, Integrations, Audit Logs, Workflows, or Activity Monitor, this
+dashboard should be revisited to add their nav items/cards per the attached mockup.
+
+---
+
+## STORY: Add browser project create-and-list page  (BEEM-22)
+**Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 3 · **Labels:** fa-1, frontend, mvp
+
+### Story
+As a **signed-in user**, I want **a Projects page where I can see the projects I have access to,
+and — if I'm a platform admin — create a new project by name**, so that **I can manage projects
+without calling the API directly**.
+
+Reached via the "Projects" entry point on the Setup Dashboard (`BEEM-23`).
+
+### Acceptance Criteria
+**Scenario: Signed-in user sees their accessible projects on the page**
+- Given a signed-in user has access to two projects and not a third
+- When they open the Projects page
+- Then only the two accessible projects are listed by name, and the third project does not appear
+
+**Scenario: Signed-in user with no accessible projects sees an empty state**
+- Given a signed-in user has access to zero projects
+- When they open the Projects page
+- Then the page shows an empty-state message and no project rows
+
+**Scenario: Platform admin creates a project through the page**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN` is on the Projects page
+- When they submit the create-project form with a valid name
+- Then the request succeeds, the new project appears in the list, and the form returns to its
+  empty/ready state
+
+**Scenario: Platform admin submits an empty name**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN` is on the Projects page
+- When they submit the create-project form with a blank name
+- Then the form shows an inline validation error and no project is created
+
+**Scenario: Non-admin user does not see project creation controls**
+- Given a signed-in user whose `platform_role` is not `PLATFORM_ADMIN`
+- When they open the Projects page
+- Then no create-project form or button is rendered, only the accessible-projects list
+
+**Scenario: Duplicate project name is rejected with a clear error**
+- Given a signed-in user with `platform_role = PLATFORM_ADMIN` submits a project name that
+  already exists
+- When the creation request is sent
+- Then the page shows an error indicating the name is already taken and no duplicate project is
+  created
+
+### Covered requirements
+- FR-001 (name-only creation — browser expression of `BEEM-12`'s API)
+- FR-002 (browser expression of `BEEM-12`'s API)
+
+### Out of scope
+The dashboard shell, sidebar, and post-login redirect (`BEEM-23`'s scope — this page is reached
+via `BEEM-23`'s "Projects" nav entry). Also out of scope: integration-binding UI (`BHEEM-4`),
+membership/role management UI (`BEEM-15`), editing project details (`BEEM-21`), and
+workflow-policy pairing UI (`BEEM-13`). Backend behavior, validation rules, and authorization
+logic are not touched — this story only adds the page that consumes `BEEM-12`'s existing
+`GET`/`POST /api/v1/projects` endpoints.
+
+### Notes / dependencies
+Depends on `BEEM-12` (merged; provides `GET`/`POST /api/v1/projects` with admin-only create and
+access-scoped list) and `BEEM-23` (dashboard shell whose "Projects" nav entry links to this
+page — sequence `BEEM-23` first). Reuses the existing browser auth page patterns — card layout,
+form structure, and `theme.css` — established in `app/web/templates/auth/*` and
+`BEEM-18`/`BEEM-19`.
+
+---
+
 ## STORY: Edit project details  (BEEM-21)
 **Epic:** BEEM-3 · **Release:** MVP · **Estimate:** 2 · **Labels:** fa-1, mvp
 
